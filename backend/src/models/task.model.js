@@ -13,14 +13,15 @@ const TaskSchema = new Schema(
             type : String ,
             required : true,    
             trim : true,
-            maxLength : 200,
-            default : null, 
+            maxLength : 200, 
+            index : true,
         },
         status : {
             type : String, 
             enum : ['pending' , 'completed'],
             default : 'pending',
             required : true,
+            index : true
         },
         deadline : {
             type : Date ,
@@ -30,6 +31,7 @@ const TaskSchema = new Schema(
             type : Schema.Types.ObjectId,
             ref : "User",
             required : true,
+            index : true,
         },
         comments : {
             type : [String],
@@ -42,7 +44,7 @@ const TaskSchema = new Schema(
             trim : true,
             index : true,
         },
-        archieved : {
+        archived : {
             type : Boolean ,
             default : false,
         },
