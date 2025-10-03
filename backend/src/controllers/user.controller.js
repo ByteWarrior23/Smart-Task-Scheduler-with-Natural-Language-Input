@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import asyncHandler from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
+import jwt from "jsonwebtoken";
 
 // Generate access + refresh tokens
 const generateAccessTokenandRefreshToken = async (userId) => {
@@ -24,14 +25,17 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "All fields are required");
   }
 
-  const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+  const normalizedUsername = username.trim();
+  const normalizedEmail = email.trim().toLowerCase();
+
+  const existingUser = await User.findOne({ $or: [{ username: normalizedUsername }, { email: normalizedEmail }] });
   if (existingUser) throw new ApiError(400, "User already exists");
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
   const user = await User.create({
-    username,
-    email,
+    username: normalizedUsername,
+    email: normalizedEmail,
     fullname,
     password: hashedPassword,
   });
@@ -50,7 +54,10 @@ const registerUser = asyncHandler(async (req, res) => {
 const loginUser = asyncHandler(async (req, res) => {
   const { username, email, password } = req.body;
 
-  const user = await User.findOne({ $or: [{ username }, { email }] });
+  const normalizedUsername = username?.trim();
+  const normalizedEmail = email?.trim().toLowerCase();
+
+  const user = await User.findOne({ $or: [{ username: normalizedUsername }, { email: normalizedEmail }] });
   if (!user) throw new ApiError(400, "User not found");
 
   const isPasswordCorrect = await bcrypt.compare(password, user.password);
@@ -86,4 +93,127 @@ const logoutUser = asyncHandler(async (req, res) => {
   }));
 });
 
-export { registerUser, loginUser, logoutUser };
+const updateDetails = asyncHandler(async (req, res) => {
+    const userId = req.user.id;
+    const { username, email, fullname, profile_picture } = req.body;
+    const user = await User.findById(userId);
+    if (!user) throw new ApiError(404, "User not found");
+
+    // Normalize incoming values
+    const nextUsername = typeof username === 'string' ? username.trim() : undefined;
+    const nextEmail = typeof email === 'string' ? email.trim().toLowerCase() : undefined;
+
+    // Enforce uniqueness for username if changing
+    if (nextUsername && nextUsername !== user.username) {
+        const taken = await User.findOne({ username: nextUsername });
+        if (taken) throw new ApiError(409, "Username already taken");
+        user.username = nextUsername;
+    }
+
+    // Enforce uniqueness for email if changing
+    if (nextEmail && nextEmail !== user.email) {
+        const taken = await User.findOne({ email: nextEmail });
+        if (taken) throw new ApiError(409, "Email already in use");
+        user.email = nextEmail;
+    }
+
+    if (typeof fullname === 'string' && fullname.trim()) {
+        user.fullname = fullname;
+    }
+    if (typeof profile_picture === 'string' && profile_picture.trim()) {
+        user.profile_picture = profile_picture;
+    }
+
+    await user.save();
+    return res.status(200).json(new ApiResponse(200, "User details updated successfully", {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        fullname: user.fullname,
+        profile_picture: user.profile_picture
+    }));    
+});
+
+const refreshSession = asyncHandler(async (req, res) => {
+    const incomingRefreshToken = req.cookies?.refreshToken || req.body.refreshToken
+    if(!incomingRefreshToken){
+        throw new ApiError(401, "Refresh token is missing")
+    }
+    jwt.verify(
+        incomingRefreshToken,
+        process.env.JWT_REFRESH_TOKEN,
+        async (err, decoded) => {
+            if(err){
+                throw new ApiError(401, "Invalid or expired refresh token")
+            }
+            const user = await User.findById(decoded._id)
+            if(!user || user.refreshToken !== incomingRefreshToken){
+                throw new ApiError(401, "Invalid refresh token")
+            }
+            const { accessToken, refreshToken: newRefreshToken } = await generateAccessTokenandRefreshToken(user.id)
+
+            const options = {
+                httpOnly : true,
+                secure : process.env.NODE_ENV === 'production',
+                sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'lax'
+            }
+            
+            return res.status(200)
+            .cookie("accessToken", accessToken, options)
+            .cookie("refreshToken", newRefreshToken, options)
+            .json(
+                new ApiResponse(
+                200,
+                "Token refreshed successfully",
+                {
+                    accessToken,
+                    refreshToken: newRefreshToken
+                }
+                )
+            )
+        }
+    )
+});
+
+const getMe = asyncHandler(async (req, res) => {
+    const userId = req.user.id;
+    const user = await User.findById(userId).select("-password -refreshToken");
+    if (!user) throw new ApiError(404, "User not found");
+
+    return res.status(200).json(new ApiResponse(200, "User fetched successfully", user));
+});
+
+const changePassword = asyncHandler(async (req, res) => {
+    const userId = req.user.id;
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+        throw new ApiError(400, "Both current and new passwords are required");
+    }
+    const user = await User.findById(userId);   
+    if (!user) throw new ApiError(404, "User not found");
+    const isPasswordCorrect = await user.isPasswordCorrect(currentPassword);
+    if (!isPasswordCorrect) throw new ApiError(400, "Current password is incorrect");
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.refreshToken = null;
+    await user.save({ validateBeforeSave: false });
+    return res.status(200).json(new ApiResponse(200, "Password changed successfully"));
+});
+
+const deleteUser = asyncHandler(async (req, res) => {
+    const userId = req.user.id;
+    const user = await User.findById(userId);
+    if (!user) throw new ApiError(404, "User not found");
+    await user.deleteOne();
+    return res.status(200).json(new ApiResponse(200, "User deleted successfully"));
+});
+
+
+export {registerUser, 
+    loginUser, 
+    logoutUser,
+    updateDetails,
+    refreshSession,
+    getMe,
+    changePassword,
+    deleteUser
+};

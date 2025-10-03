@@ -9,7 +9,6 @@ const UserSchema = new Schema(
             required : true,
             maxLength : 16,
             unique : true,
-            lowercase : true,
             trim : true,
             index : true,
         },
@@ -66,9 +65,9 @@ UserSchema.methods.generateAccessToken = function () {
       email: this.email,
       fullname: this.fullname,
     },
-    process.env.ACCESS_TOKEN_SECRET,
+    process.env.JWT_ACCESS_TOKEN,
     {
-      expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
+      expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN,
     }
   );
 };
@@ -79,9 +78,9 @@ UserSchema.methods.generateRefreshToken = function () {
     {
       _id: this._id,
     },
-    process.env.REFRESH_TOKEN_SECRET,
+    process.env.JWT_REFRESH_TOKEN,
     {
-      expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
+      expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN,
     }
   );
 };

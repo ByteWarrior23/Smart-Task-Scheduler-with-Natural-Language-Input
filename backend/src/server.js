@@ -1,11 +1,9 @@
 import mongoose from "mongoose";
+import app from "./app.js";
 
 const connectDB = async () => {
   try {
-    const connectionInstance = await mongoose.connect(process.env.MONGODB_URL, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    const connectionInstance = await mongoose.connect(process.env.MONGODB_URL);
     console.log("Database connected successfully");
     console.log("Host:", connectionInstance.connection.host);
   } catch (error) {
@@ -14,4 +12,12 @@ const connectDB = async () => {
   }
 };
 
-export default connectDB;
+const start = async () => {
+  await connectDB();
+  const port = Number(process.env.PORT) || 3000;
+  app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+  });
+};
+
+start();
