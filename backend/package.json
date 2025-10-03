@@ -16,11 +16,13 @@
   "description": "",
   "dependencies": {
     "bcryptjs": "^3.0.2",
+    "chrono-node": "^2.9.0",
     "cookie-parser": "^1.4.7",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.20.0",
     "mongoose": "^8.18.3",
+    "natural": "^8.1.0",
     "prettier": "^3.6.2"
   },
   "devDependencies": {
