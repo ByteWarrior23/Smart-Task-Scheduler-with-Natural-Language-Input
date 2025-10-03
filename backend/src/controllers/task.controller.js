@@ -4,14 +4,21 @@ import { ApiError } from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 
 const createTask = asyncHandler(async (req, res) => {
-  const { title, description, deadline } = req.body;
+  const { title, description, deadline, priority, category, time_required, natural_language_input } = req.body;
     if (!title || !description) {
         throw new ApiError(400, "Title and description are required");
+    }
+    if (priority && !['low', 'medium', 'high', 'urgent'].includes(priority)) {
+        throw new ApiError(400, "Invalid priority value");
     }
     const task = await Task.create({
         title,
         description,
         deadline: deadline || null,
+        priority: priority || 'medium',
+        category: category || 'general',
+        time_required: time_required || null,
+        natural_language_input: natural_language_input || null,
         owner: req.user.id,
     });
     return res.status(201).json(new ApiResponse(201, "Task created successfully", task));
@@ -28,15 +35,23 @@ const deleteTask = asyncHandler(async (req, res) => {
 
 const updateTask = asyncHandler(async (req, res) => {
     const { taskId } = req.params;
-    const { title, description, deadline, status } = req.body;
+    const { title, description, deadline, status, priority, category, time_required } = req.body;
     const task =  await Task.findOne({ _id: taskId, owner: req.user.id });
     if (!task) {
         throw new ApiError(404, "Task not found or you are not authorized to update this task");
     }   
-    task.title = title || task.title;
-    task.description = description || task.description;
-    task.deadline = typeof deadline !== 'undefined' ? deadline : task.deadline;
-    task.status = status || task.status;
+    if (title) task.title = title;
+    if (description) task.description = description;
+    if (typeof deadline !== 'undefined') task.deadline = deadline;
+    if (status) task.status = status;
+    if (priority) {
+        if (!['low', 'medium', 'high', 'urgent'].includes(priority)) {
+            throw new ApiError(400, "Invalid priority value");
+        }
+        task.priority = priority;
+    }
+    if (category) task.category = category;
+    if (typeof time_required !== 'undefined') task.time_required = time_required;
     await task.save();
     return res.status(200).json(new ApiResponse(200, "Task updated successfully", task));
 });
@@ -200,5 +215,10 @@ export {
   getArchivedTasks,
   getPendingTasks,
   getCompletedTasks,
-  SearchTasks
+  SearchTasks,
+  filterTasksByCategory,
+  sortTasksByDeadlineascending,
+  sortTasksByDeadlineDescending,
+  sortTasksByCreationDate,
+  sortTasksByTimeRequired
 };

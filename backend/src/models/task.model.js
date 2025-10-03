@@ -23,6 +23,14 @@ const TaskSchema = new Schema(
             required : true,
             index : true
         },
+        priority : {
+            type : String,
+            enum : ['low' , 'medium' , 'high', 'urgent'],
+            default : 'medium',
+            required : true,
+            index : true
+        },
+
         deadline : {
             type : Date ,
             default : null ,
@@ -32,6 +40,29 @@ const TaskSchema = new Schema(
             ref : "User",
             required : true,
             index : true,
+        },
+        recurring : {
+            type : Boolean,
+            default : false,
+            index : true,
+        },
+        natural_language_input : {
+            type : String,
+            default : null,
+            trim : true,
+        },
+        auto_categorized : {
+            type : Boolean,
+            default : false,
+        },
+        smart_suggestions : {
+            type : [String],
+            default : [],
+        },
+        dependencies : {
+            type : [Schema.Types.ObjectId],
+            ref : "Task",
+            default : [],
         },
         comments : {
             type : [String],
