@@ -80,7 +80,6 @@ const TaskSchema = new Schema(
         comments : {
             type : [String],
             default : [],
-            required : false,
         },
         category : {
             type : String ,
@@ -95,7 +94,6 @@ const TaskSchema = new Schema(
         time_required : {
             type : Number , // in minutes
             default : null,
-            required : false,
         }
     },
     {

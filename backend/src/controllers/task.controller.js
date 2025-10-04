@@ -41,14 +41,14 @@ const createTask = asyncHandler(async (req, res) => {
     const task = await Task.create({
         title,
         description,
-    deadline: deadline || null,
-    priority: priority || 'medium',
-    category: category || 'general',
-    time_required: time_required || null,
-    natural_language_input: natural_language_input || null,
-    auto_categorized: !!natural_language_input && !req.body.category,
-    owner: req.user.id,
-  });
+        deadline: deadline || null,
+        priority: priority || 'medium',
+        category: category || 'general',
+        time_required: time_required || null,
+        natural_language_input: natural_language_input || null,
+        auto_categorized: !!natural_language_input && !req.body.category,
+        owner: req.user.id,
+    });
   
     return res.status(201).json(new ApiResponse(201, "Task created successfully", task));
 });
@@ -321,7 +321,7 @@ const getRecurringTaskInstances = asyncHandler(async (req, res) => {
 });
 
 // Reminder controllers
-const getReminderStats = asyncHandler(async (req, res) => {
+const getReminderStatsController = asyncHandler(async (req, res) => {
     const stats = await getReminderStats(req.user.id);
     return res.status(200).json(new ApiResponse(200, "Reminder statistics retrieved successfully", stats));
 });
@@ -397,7 +397,7 @@ export {
   deleteRecurringTask,
   getRecurringTasks,
   getRecurringTaskInstances,
-  getReminderStats,
+  getReminderStatsController,
   scheduleReminder,
   checkDeadlines,
   sendWelcomeEmailToUser

@@ -19,7 +19,7 @@ import {
   deleteRecurringTask,
   getRecurringTasks,
   getRecurringTaskInstances,
-  getReminderStats,
+  getReminderStatsController,
   scheduleReminder,
   checkDeadlines,
   sendWelcomeEmailToUser
@@ -51,7 +51,7 @@ router.put("/recurring/:taskId", updateRecurringTask);
 router.delete("/recurring/:taskId", deleteRecurringTask);
 
 // Reminder routes
-router.get("/reminders/stats", getReminderStats);
+router.get("/reminders/stats", getReminderStatsController);
 router.post("/:taskId/reminder", scheduleReminder);
 router.post("/reminders/check", checkDeadlines);
 router.post("/welcome-email", sendWelcomeEmailToUser);

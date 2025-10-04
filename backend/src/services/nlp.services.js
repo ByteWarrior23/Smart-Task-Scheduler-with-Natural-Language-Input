@@ -1,5 +1,6 @@
 import * as chrono from 'chrono-node';
-import { RRule } from 'rrule';
+import pkg from 'rrule';
+const { RRule } = pkg;
 import natural from 'natural';
 import { categoryTrainingData, priorityTrainingData, durationPatterns, recurrencePatterns } from './training_data.js';
 

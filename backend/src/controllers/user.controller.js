@@ -139,40 +139,40 @@ const refreshSession = asyncHandler(async (req, res) => {
     if(!incomingRefreshToken){
         throw new ApiError(401, "Refresh token is missing")
     }
-    jwt.verify(
-        incomingRefreshToken,
-        process.env.JWT_REFRESH_TOKEN,
-        async (err, decoded) => {
-            if(err){
-                throw new ApiError(401, "Invalid or expired refresh token")
-            }
-            const user = await User.findById(decoded._id)
-            if(!user || user.refreshToken !== incomingRefreshToken){
-                throw new ApiError(401, "Invalid refresh token")
-            }
-            const { accessToken, refreshToken: newRefreshToken } = await generateAccessTokenandRefreshToken(user.id)
-
-            const options = {
-                httpOnly : true,
-                secure : process.env.NODE_ENV === 'production',
-                sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'lax'
-            }
-            
-            return res.status(200)
-            .cookie("accessToken", accessToken, options)
-            .cookie("refreshToken", newRefreshToken, options)
-            .json(
-                new ApiResponse(
-                200,
-                "Token refreshed successfully",
-                {
-                    accessToken,
-                    refreshToken: newRefreshToken
-                }
-                )
-            )
+    
+    try {
+        const decoded = jwt.verify(incomingRefreshToken, process.env.JWT_REFRESH_TOKEN);
+        const user = await User.findById(decoded._id)
+        if(!user || user.refreshToken !== incomingRefreshToken){
+            throw new ApiError(401, "Invalid refresh token")
         }
-    )
+        const { accessToken, refreshToken: newRefreshToken } = await generateAccessTokenandRefreshToken(user.id)
+
+        const options = {
+            httpOnly : true,
+            secure : process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'lax'
+        }
+        
+        return res.status(200)
+        .cookie("accessToken", accessToken, options)
+        .cookie("refreshToken", newRefreshToken, options)
+        .json(
+            new ApiResponse(
+            200,
+            "Token refreshed successfully",
+            {
+                accessToken,
+                refreshToken: newRefreshToken
+            }
+            )
+        )
+    } catch (error) {
+        if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+            throw new ApiError(401, "Invalid or expired refresh token")
+        }
+        throw error;
+    }
 });
 
 const getMe = asyncHandler(async (req, res) => {
