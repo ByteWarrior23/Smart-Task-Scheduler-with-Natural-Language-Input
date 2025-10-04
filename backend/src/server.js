@@ -1,5 +1,5 @@
 import app from "./app.js";
-import { connectDB } from "./db/index.js";
+import connectDB from "./db/index.js";
 import { startReminderScheduler } from "./services/cron.scheduler.js";
 
 const start = async () => {
