@@ -13,6 +13,11 @@ import {
   addComment,
   getComments,
   SearchTasks,
+  filterTasksByCategory,
+  sortTasksByDeadlineascending,
+  sortTasksByDeadlineDescending,
+  sortTasksByCreationDate,
+  sortTasksByTimeRequired,
   parseNaturalLanguage,
   createRecurringTask,
   updateRecurringTask,
@@ -32,29 +37,36 @@ router.use(verifyJWT);
 router.post("/", createTask);
 router.get("/", getTasks);
 router.get("/search", SearchTasks);
-router.get("/:taskId", getTaskById);
-router.patch("/:taskId", updateTask);
-router.delete("/:taskId", deleteTask);
-router.post("/:taskId/archive", archiveTask);
-router.post("/:taskId/unarchive", unarchiveTask);
-router.post("/:taskId/complete", markTaskAsCompleted);
-router.post("/:taskId/pending", markTaskAsPending);
-router.post("/:taskId/comments", addComment);
-router.get("/:taskId/comments", getComments);
-router.post("/nlp/parse", parseNaturalLanguage);
+router.get("/category/:category", filterTasksByCategory);
+router.get("/sort/deadline", sortTasksByDeadlineascending);
+router.get("/sort/priority", sortTasksByDeadlineDescending);
+router.get("/sort/created", sortTasksByCreationDate);
+router.get("/sort/time-required", sortTasksByTimeRequired);
+router.get("/analytics", getTasks); // Placeholder for analytics
 
-// Recurring task routes
+// Recurring task routes (must come before generic :taskId routes)
 router.post("/recurring", createRecurringTask);
 router.get("/recurring", getRecurringTasks);
 router.get("/recurring/:taskId/instances", getRecurringTaskInstances);
 router.put("/recurring/:taskId", updateRecurringTask);
 router.delete("/recurring/:taskId", deleteRecurringTask);
 
+router.patch("/:taskId/archive", archiveTask);
+router.patch("/:taskId/unarchive", unarchiveTask);
+router.patch("/:taskId/complete", markTaskAsCompleted);
+router.patch("/:taskId/pending", markTaskAsPending);
+router.post("/:taskId/comments", addComment);
+router.get("/:taskId/comments", getComments);
+router.post("/:taskId/reminder", scheduleReminder);
+router.get("/:taskId", getTaskById);
+router.patch("/:taskId", updateTask);
+router.delete("/:taskId", deleteTask);
+router.post("/nlp/parse", parseNaturalLanguage);
+
 // Reminder routes
 router.get("/reminders/stats", getReminderStatsController);
-router.post("/:taskId/reminder", scheduleReminder);
-router.post("/reminders/check", checkDeadlines);
-router.post("/welcome-email", sendWelcomeEmailToUser);
+router.get("/deadlines/check", checkDeadlines);
+router.post("/send-welcome-email", sendWelcomeEmailToUser);
 
 export default router;
 
