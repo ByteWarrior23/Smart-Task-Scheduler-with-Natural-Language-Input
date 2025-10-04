@@ -2,25 +2,54 @@ import { Task } from "../models/task.model.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
+import { parse, suggestSlots, detectConflicts, generateRecurringTasks, updateRecurringSeries, deleteRecurringSeries } from "../services/nlp.services.js";
+import { checkUpcomingDeadlines, checkOverdueTasks, getReminderStats, scheduleTaskReminder } from "../services/reminder.scheduler.js";
+import { sendWelcomeEmail } from "../services/email.service.js";
 
 const createTask = asyncHandler(async (req, res) => {
-  const { title, description, deadline, priority, category, time_required, natural_language_input } = req.body;
-    if (!title || !description) {
-        throw new ApiError(400, "Title and description are required");
+  let { title, description, deadline, priority, category, time_required, natural_language_input } = req.body;
+  
+  if (natural_language_input) {
+    const parsed = await parse(natural_language_input, { userId: req.user.id });
+    
+    title = title || parsed.title;
+    description = description || parsed.description;
+    deadline = deadline || parsed.deadline;
+    priority = priority || parsed.priority;
+    category = category || parsed.category;
+    time_required = time_required || parsed.time_required;
+  }
+  
+  if (!title || !description) {
+    throw new ApiError(400, "Title and description are required");
+  }
+  if (priority && !['low', 'medium', 'high', 'urgent'].includes(priority)) {
+    throw new ApiError(400, "Invalid priority value");
+  }
+  
+  if (deadline && time_required) {
+    const conflicts = await detectConflicts(req.user.id, deadline, time_required);
+    if (conflicts.length > 0) {
+      const suggestions = await suggestSlots(req.user.id, time_required);
+      return res.status(409).json(new ApiResponse(409, "Time conflict detected", {
+        conflicts,
+        suggestions
+      }));
     }
-    if (priority && !['low', 'medium', 'high', 'urgent'].includes(priority)) {
-        throw new ApiError(400, "Invalid priority value");
-    }
+  }
+  
     const task = await Task.create({
         title,
         description,
-        deadline: deadline || null,
-        priority: priority || 'medium',
-        category: category || 'general',
-        time_required: time_required || null,
-        natural_language_input: natural_language_input || null,
-        owner: req.user.id,
-    });
+    deadline: deadline || null,
+    priority: priority || 'medium',
+    category: category || 'general',
+    time_required: time_required || null,
+    natural_language_input: natural_language_input || null,
+    auto_categorized: !!natural_language_input && !req.body.category,
+    owner: req.user.id,
+  });
+  
     return res.status(201).json(new ApiResponse(201, "Task created successfully", task));
 });
 
@@ -200,6 +229,147 @@ const sortTasksByTimeRequired = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, "Tasks sorted by time required", tasks));
 });
 
+// NLP Parse endpoint
+const parseNaturalLanguage = asyncHandler(async (req, res) => {
+    const { text } = req.body;
+    if (!text) {
+        throw new ApiError(400, "Text input is required");
+    }
+    
+    const parsed = await parse(text, { userId: req.user.id });
+    const suggestions = await suggestSlots(req.user.id, parsed.time_required);
+    
+    return res.status(200).json(new ApiResponse(200, "Text parsed successfully", {
+        ...parsed,
+        suggestions
+    }));
+});
+
+// Recurring task controllers
+const createRecurringTask = asyncHandler(async (req, res) => {
+    const { title, description, deadline, priority, category, time_required, rrule_string, end_date } = req.body;
+    
+    if (!title || !description || !deadline || !rrule_string) {
+        throw new ApiError(400, "Title, description, deadline, and rrule_string are required");
+    }
+    
+    // Create the parent task
+    const parentTask = await Task.create({
+        title,
+        description,
+        deadline,
+        priority: priority || 'medium',
+        category: category || 'general',
+        time_required: time_required || 60,
+        recurring: true,
+        rrule_string,
+        owner: req.user.id
+    });
+    
+    // Generate recurring instances
+    const recurringTasks = await generateRecurringTasks(req.user.id, parentTask, rrule_string, end_date);
+    
+    return res.status(201).json(new ApiResponse(201, "Recurring task created successfully", {
+        parent_task: parentTask,
+        instances: recurringTasks
+    }));
+});
+
+const updateRecurringTask = asyncHandler(async (req, res) => {
+    const { taskId } = req.params;
+    const { update_type } = req.body; // 'this', 'following', 'all'
+    
+    const updates = req.body;
+    delete updates.update_type; // Remove update_type from updates
+    
+    const result = await updateRecurringSeries(taskId, updates, update_type);
+    
+    return res.status(200).json(new ApiResponse(200, "Recurring task updated successfully", result));
+});
+
+const deleteRecurringTask = asyncHandler(async (req, res) => {
+    const { taskId } = req.params;
+    const { delete_type = 'this' } = req.body; // 'this', 'following', 'all'
+    
+    const result = await deleteRecurringSeries(taskId, delete_type);
+    
+    return res.status(200).json(new ApiResponse(200, "Recurring task deleted successfully", result));
+});
+
+const getRecurringTasks = asyncHandler(async (req, res) => {
+    const tasks = await Task.find({ 
+        owner: req.user.id, 
+        recurring: true,
+        parent_task_id: null // Only parent tasks
+    });
+    
+    return res.status(200).json(new ApiResponse(200, "Recurring tasks retrieved successfully", tasks));
+});
+
+const getRecurringTaskInstances = asyncHandler(async (req, res) => {
+    const { taskId } = req.params;
+    
+    const instances = await Task.find({
+        owner: req.user.id,
+        $or: [
+            { _id: taskId },
+            { parent_task_id: taskId }
+        ]
+    }).sort({ deadline: 1 });
+    
+    return res.status(200).json(new ApiResponse(200, "Recurring task instances retrieved successfully", instances));
+});
+
+// Reminder controllers
+const getReminderStats = asyncHandler(async (req, res) => {
+    const stats = await getReminderStats(req.user.id);
+    return res.status(200).json(new ApiResponse(200, "Reminder statistics retrieved successfully", stats));
+});
+
+const scheduleReminder = asyncHandler(async (req, res) => {
+    const { taskId } = req.params;
+    const { reminderTime } = req.body;
+    
+    if (!reminderTime) {
+        throw new ApiError(400, "Reminder time is required");
+    }
+    
+    const result = await scheduleTaskReminder(taskId, new Date(reminderTime));
+    
+    if (!result.success) {
+        throw new ApiError(400, result.error);
+    }
+    
+    return res.status(200).json(new ApiResponse(200, "Reminder scheduled successfully", result));
+});
+
+const checkDeadlines = asyncHandler(async (req, res) => {
+    const upcomingResults = await checkUpcomingDeadlines();
+    const overdueResults = await checkOverdueTasks();
+    
+    return res.status(200).json(new ApiResponse(200, "Deadline check completed", {
+        upcoming: upcomingResults,
+        overdue: overdueResults,
+        total: upcomingResults.length + overdueResults.length
+    }));
+});
+
+const sendWelcomeEmailToUser = asyncHandler(async (req, res) => {
+    const { email, emailConfig } = req.body;
+    
+    if (!email) {
+        throw new ApiError(400, "Email is required");
+    }
+    
+    const result = await sendWelcomeEmail(email, req.user.username, emailConfig);
+    
+    if (!result.success) {
+        throw new ApiError(500, result.error);
+    }
+    
+    return res.status(200).json(new ApiResponse(200, "Welcome email sent successfully", result));
+});
+
 export { 
   createTask,
   deleteTask,
@@ -220,5 +390,15 @@ export {
   sortTasksByDeadlineascending,
   sortTasksByDeadlineDescending,
   sortTasksByCreationDate,
-  sortTasksByTimeRequired
+  sortTasksByTimeRequired,
+  parseNaturalLanguage,
+  createRecurringTask,
+  updateRecurringTask,
+  deleteRecurringTask,
+  getRecurringTasks,
+  getRecurringTaskInstances,
+  getReminderStats,
+  scheduleReminder,
+  checkDeadlines,
+  sendWelcomeEmailToUser
 };

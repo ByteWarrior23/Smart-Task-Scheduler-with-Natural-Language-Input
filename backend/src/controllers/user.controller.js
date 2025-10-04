@@ -207,6 +207,34 @@ const deleteUser = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, "User deleted successfully"));
 });
 
+const updateEmailConfig = asyncHandler(async (req, res) => {
+    const userId = req.user.id;
+    const { emailConfig } = req.body;
+    
+    if (!emailConfig) {
+        throw new ApiError(400, "Email configuration is required");
+    }
+    
+    const user = await User.findById(userId);
+    if (!user) throw new ApiError(404, "User not found");
+    
+    // Update email configuration
+    user.emailConfig = {
+        service: emailConfig.service || 'gmail',
+        user: emailConfig.user || null,
+        pass: emailConfig.pass || null,
+        host: emailConfig.host || null,
+        port: emailConfig.port || null,
+        secure: emailConfig.secure || false
+    };
+    
+    await user.save();
+    
+    return res.status(200).json(new ApiResponse(200, "Email configuration updated successfully", {
+        emailConfig: user.emailConfig
+    }));
+});
+
 
 export {registerUser, 
     loginUser, 
@@ -215,5 +243,6 @@ export {registerUser,
     refreshSession,
     getMe,
     changePassword,
-    deleteUser
+    deleteUser,
+    updateEmailConfig
 };

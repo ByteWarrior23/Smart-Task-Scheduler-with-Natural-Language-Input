@@ -64,6 +64,19 @@ const TaskSchema = new Schema(
             ref : "Task",
             default : [],
         },
+        parent_task_id : {
+            type : Schema.Types.ObjectId,
+            ref : "Task",
+            default : null,
+        },
+        occurrence_index : {
+            type : Number,
+            default : null,
+        },
+        rrule_string : {
+            type : String,
+            default : null,
+        },
         comments : {
             type : [String],
             default : [],

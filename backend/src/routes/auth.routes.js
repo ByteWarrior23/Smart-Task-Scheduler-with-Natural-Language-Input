@@ -8,7 +8,8 @@ import {
   getMe,
   changePassword,
   updateDetails,
-  deleteUser
+  deleteUser,
+  updateEmailConfig
 } from "../controllers/user.controller.js";
 
 const router = Router();
@@ -23,6 +24,7 @@ router.post("/logout", verifyJWT, logoutUser);
 router.get("/me", verifyJWT, getMe);
 router.patch("/change-password", verifyJWT, changePassword);
 router.patch("/update", verifyJWT, updateDetails);
+router.patch("/email-config", verifyJWT, updateEmailConfig);
 router.delete("/delete", verifyJWT, deleteUser);
 
 export default router;

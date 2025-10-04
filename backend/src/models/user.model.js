@@ -45,6 +45,32 @@ const UserSchema = new Schema(
         refreshToken : {
             type : String 
         },
+        emailConfig : {
+            service : {
+                type : String,
+                default : 'gmail'
+            },
+            user : {
+                type : String,
+                default : null
+            },
+            pass : {
+                type : String,
+                default : null
+            },
+            host : {
+                type : String,
+                default : null
+            },
+            port : {
+                type : Number,
+                default : null
+            },
+            secure : {
+                type : Boolean,
+                default : false
+            }
+        },
     },
     {
         timestamps : true

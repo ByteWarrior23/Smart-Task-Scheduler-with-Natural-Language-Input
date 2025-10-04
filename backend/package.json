@@ -23,7 +23,11 @@
     "mongodb": "^6.20.0",
     "mongoose": "^8.18.3",
     "natural": "^8.1.0",
-    "prettier": "^3.6.2"
+    "node-cron": "^4.2.1",
+    "nodemailer": "^7.0.6",
+    "prettier": "^3.6.2",
+    "rrule": "^2.8.1",
+    "spacy-js": "^0.0.5"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"

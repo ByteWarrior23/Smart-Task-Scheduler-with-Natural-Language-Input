@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import app from "./app.js";
+import { startReminderScheduler } from "./services/cron.scheduler.js";
 
 const connectDB = async () => {
   try {
@@ -17,6 +18,9 @@ const start = async () => {
   const port = Number(process.env.PORT) || 3000;
   app.listen(port, () => {
     console.log(`Server running on port ${port}`);
+    
+    // Start the reminder scheduler
+    startReminderScheduler();
   });
 };
 

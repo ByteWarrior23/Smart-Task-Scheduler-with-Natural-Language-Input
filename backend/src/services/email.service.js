@@ -1,0 +1,141 @@
+import nodemailer from 'nodemailer';
+
+// Email configuration
+const createTransporter = (emailConfig = {}) => {
+    const config = {
+        service: emailConfig.service || 'gmail',
+        auth: {
+            user: emailConfig.user || process.env.EMAIL_USER,
+            pass: emailConfig.pass || process.env.EMAIL_PASS
+        }
+    };
+    
+    return nodemailer.createTransporter(config);
+};
+
+// Send reminder email
+export const sendReminderEmail = async (userEmail, task, reminderType = 'deadline', emailConfig = {}) => {
+    try {
+        const transporter = createTransporter(emailConfig);
+        
+        let subject, htmlContent;
+        
+        if (reminderType === 'deadline') {
+            const deadlineDate = new Date(task.deadline);
+            const timeUntilDeadline = Math.ceil((deadlineDate - new Date()) / (1000 * 60 * 60)); // hours
+            
+            subject = `⏰ Task Deadline Reminder: ${task.title}`;
+            htmlContent = `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #e74c3c;">⏰ Task Deadline Reminder</h2>
+                    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                        <h3 style="color: #2c3e50; margin-top: 0;">${task.title}</h3>
+                        <p style="color: #7f8c8d; margin: 10px 0;"><strong>Description:</strong> ${task.description}</p>
+                        <p style="color: #e74c3c; margin: 10px 0;"><strong>Deadline:</strong> ${deadlineDate.toLocaleString()}</p>
+                        <p style="color: #e67e22; margin: 10px 0;"><strong>Time Remaining:</strong> ${timeUntilDeadline} hours</p>
+                        <p style="color: #8e44ad; margin: 10px 0;"><strong>Priority:</strong> ${task.priority.toUpperCase()}</p>
+                        <p style="color: #27ae60; margin: 10px 0;"><strong>Category:</strong> ${task.category}</p>
+                        ${task.time_required ? `<p style="color: #3498db; margin: 10px 0;"><strong>Estimated Duration:</strong> ${task.time_required} minutes</p>` : ''}
+                    </div>
+                    <p style="color: #7f8c8d; font-size: 14px;">This is an automated reminder from your Smart Task Scheduler.</p>
+                </div>
+            `;
+        } else if (reminderType === 'overdue') {
+            subject = `🚨 Overdue Task Alert: ${task.title}`;
+            htmlContent = `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #e74c3c;">🚨 Overdue Task Alert</h2>
+                    <div style="background-color: #ffe6e6; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #e74c3c;">
+                        <h3 style="color: #2c3e50; margin-top: 0;">${task.title}</h3>
+                        <p style="color: #7f8c8d; margin: 10px 0;"><strong>Description:</strong> ${task.description}</p>
+                        <p style="color: #e74c3c; margin: 10px 0;"><strong>Deadline:</strong> ${new Date(task.deadline).toLocaleString()}</p>
+                        <p style="color: #e74c3c; margin: 10px 0;"><strong>Status:</strong> OVERDUE</p>
+                        <p style="color: #8e44ad; margin: 10px 0;"><strong>Priority:</strong> ${task.priority.toUpperCase()}</p>
+                        <p style="color: #27ae60; margin: 10px 0;"><strong>Category:</strong> ${task.category}</p>
+                    </div>
+                    <p style="color: #7f8c8d; font-size: 14px;">Please complete this task as soon as possible.</p>
+                </div>
+            `;
+        }
+        
+        const mailOptions = {
+            from: emailConfig.user || process.env.EMAIL_USER,
+            to: userEmail,
+            subject: subject,
+            html: htmlContent
+        };
+        
+        const result = await transporter.sendMail(mailOptions);
+        console.log('Reminder email sent:', result.messageId);
+        return { success: true, messageId: result.messageId };
+        
+    } catch (error) {
+        console.error('Error sending reminder email:', error);
+        return { success: false, error: error.message };
+    }
+};
+
+// Send bulk reminder emails
+export const sendBulkReminders = async (reminders) => {
+    const results = [];
+    
+    for (const reminder of reminders) {
+        const result = await sendReminderEmail(
+            reminder.userEmail,
+            reminder.task,
+            reminder.type,
+            reminder.emailConfig
+        );
+        results.push({
+            taskId: reminder.task._id,
+            userEmail: reminder.userEmail,
+            ...result
+        });
+    }
+    
+    return results;
+};
+
+// Send welcome email for new users
+export const sendWelcomeEmail = async (userEmail, username, emailConfig = {}) => {
+    try {
+        const transporter = createTransporter(emailConfig);
+        
+        const subject = `🎉 Welcome to Smart Task Scheduler!`;
+        const htmlContent = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #27ae60;">🎉 Welcome to Smart Task Scheduler!</h2>
+                <p>Hi ${username},</p>
+                <p>Welcome to your new Smart Task Scheduler! You can now:</p>
+                <ul style="color: #2c3e50;">
+                    <li>Create tasks using natural language</li>
+                    <li>Set up recurring tasks</li>
+                    <li>Get smart time slot suggestions</li>
+                    <li>Receive deadline reminders</li>
+                    <li>Track your productivity</li>
+                </ul>
+                <p>Start by creating your first task using natural language like:</p>
+                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                    <p style="margin: 0; font-style: italic;">"Meeting with John tomorrow at 3pm for 1 hour urgent work"</p>
+                </div>
+                <p>Happy scheduling!</p>
+                <p style="color: #7f8c8d; font-size: 14px;">The Smart Task Scheduler Team</p>
+            </div>
+        `;
+        
+        const mailOptions = {
+            from: emailConfig.user || process.env.EMAIL_USER,
+            to: userEmail,
+            subject: subject,
+            html: htmlContent
+        };
+        
+        const result = await transporter.sendMail(mailOptions);
+        console.log('Welcome email sent:', result.messageId);
+        return { success: true, messageId: result.messageId };
+        
+    } catch (error) {
+        console.error('Error sending welcome email:', error);
+        return { success: false, error: error.message };
+    }
+};
