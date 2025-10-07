@@ -1,4 +1,5 @@
 import { Router } from "express";
+import multer from "multer";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import {
   createTask,
@@ -27,10 +28,12 @@ import {
   getReminderStatsController,
   scheduleReminder,
   checkDeadlines,
-  sendWelcomeEmailToUser
+  sendWelcomeEmailToUser,
+  createTaskFromVoice
 } from "../controllers/task.controller.js";
 
 const router = Router();
+const upload = multer({ dest: 'uploads/' });
 
 router.use(verifyJWT);
 
@@ -67,6 +70,9 @@ router.post("/nlp/parse", parseNaturalLanguage);
 router.get("/reminders/stats", getReminderStatsController);
 router.get("/deadlines/check", checkDeadlines);
 router.post("/send-welcome-email", sendWelcomeEmailToUser);
+
+// Voice command route
+router.post("/voice", upload.single('audio'), createTaskFromVoice);
 
 export default router;
 

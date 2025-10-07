@@ -1,5 +1,6 @@
 import express from "express";
 import cookieParser from "cookie-parser";
+import multer from "multer";
 import authRoutes from "./routes/auth.routes.js";
 import taskRoutes from "./routes/task.routes.js";
 

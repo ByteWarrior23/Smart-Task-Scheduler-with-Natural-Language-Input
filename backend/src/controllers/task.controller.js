@@ -5,6 +5,8 @@ import ApiResponse from "../utils/ApiResponse.js";
 import { parse, suggestSlots, detectConflicts, generateRecurringTasks, updateRecurringSeries, deleteRecurringSeries } from "../services/nlp.services.js";
 import { checkUpcomingDeadlines, checkOverdueTasks, getReminderStats, scheduleTaskReminder } from "../services/reminder.scheduler.js";
 import { sendWelcomeEmail } from "../services/email.service.js";
+import { transcribeAudio } from "../services/speech.services.js";
+import fs from "fs";
 
 const createTask = asyncHandler(async (req, res) => {
   let { title, description, deadline, priority, category, time_required, natural_language_input } = req.body;
@@ -370,20 +372,20 @@ const checkDeadlines = asyncHandler(async (req, res) => {
 
 const sendWelcomeEmailToUser = asyncHandler(async (req, res) => {
     const { email, emailConfig } = req.body;
-    
+
     if (!email) {
         throw new ApiError(400, "Email is required");
     }
-    
+
     console.log('Sending welcome email to:', email, 'for user:', req.user.username);
-    
+
     try {
         const result = await sendWelcomeEmail(email, req.user.username, emailConfig);
         console.log('Email result:', result);
-        
+
         if (!result.success) {
             // If it's an authentication error, return success with a note
-            if (result.error && (result.error.includes('Username and Password not accepted') || 
+            if (result.error && (result.error.includes('Username and Password not accepted') ||
                                 result.error.includes('Invalid login') ||
                                 result.error.includes('BadCredentials'))) {
                 return res.status(200).json(new ApiResponse(200, "Welcome email sent successfully (mock - authentication failed)", {
@@ -394,7 +396,7 @@ const sendWelcomeEmailToUser = asyncHandler(async (req, res) => {
             }
             throw new ApiError(500, result.error);
         }
-        
+
         return res.status(200).json(new ApiResponse(200, "Welcome email sent successfully", result));
     } catch (error) {
         console.log('Error in sendWelcomeEmailToUser:', error);
@@ -402,7 +404,53 @@ const sendWelcomeEmailToUser = asyncHandler(async (req, res) => {
     }
 });
 
-export { 
+const createTaskFromVoice = asyncHandler(async (req, res) => {
+    if (!req.file) {
+        throw new ApiError(400, "Audio file is required");
+    }
+
+    const audioBuffer = fs.readFileSync(req.file.path);
+    const transcribedText = await transcribeAudio(audioBuffer);
+
+    // Clean up uploaded file
+    fs.unlinkSync(req.file.path);
+
+    // Parse the text using NLP
+    const parsed = await parse(transcribedText, { userId: req.user.id });
+
+    let { title, description, deadline, priority, category, time_required } = parsed;
+
+    if (!title || !description) {
+        throw new ApiError(400, "Could not extract title and description from voice input");
+    }
+
+    if (deadline && time_required) {
+        const conflicts = await detectConflicts(req.user.id, deadline, time_required);
+        if (conflicts.length > 0) {
+            const suggestions = await suggestSlots(req.user.id, time_required);
+            return res.status(409).json(new ApiResponse(409, "Time conflict detected", {
+                conflicts,
+                suggestions
+            }));
+        }
+    }
+
+    const task = await Task.create({
+        title,
+        description,
+        deadline: deadline || null,
+        priority: priority || 'medium',
+        category: category || 'general',
+        time_required: time_required || null,
+        natural_language_input: transcribedText,
+        auto_categorized: true,
+        owner: req.user.id,
+    });
+
+    return res.status(201).json(new ApiResponse(201, "Task created from voice successfully", task));
+});
+
+export {
   createTask,
   deleteTask,
   updateTask,
@@ -432,5 +480,6 @@ export {
   getReminderStatsController,
   scheduleReminder,
   checkDeadlines,
-  sendWelcomeEmailToUser
+  sendWelcomeEmailToUser,
+  createTaskFromVoice
 };
