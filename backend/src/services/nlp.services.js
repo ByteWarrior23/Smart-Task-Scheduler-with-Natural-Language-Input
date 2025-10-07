@@ -106,7 +106,7 @@ export const parse = async (text, options = {}) => {
                 
                 // Continue adding words to title until we hit a time/date indicator or stop word
                 for (let j = i + 1; j < words.length; j++) {
-                    const nextWord = words[j].toLowerCase().replace(/[^\w]/g, '');
+                    const nextWord = words[j].toLowerCase().replace('/[^\w]/g, ');
                     
                     // Stop if we hit time indicators
                     if (['tomorrow', 'today', 'yesterday', 'next', 'last', 'at', 'on', 'in', 'for', 'until', 'by', 'before', 'after'].includes(nextWord)) {
