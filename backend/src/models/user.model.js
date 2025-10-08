@@ -1,4 +1,4 @@
-import mongoose , {Schema} from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
@@ -10,20 +10,18 @@ const UserSchema = new Schema(
             maxLength : 16,
             unique : true,
             trim : true,
-            index : true,
         },
         fullname : {
             type : String ,
             required : true,
-            maxLength : 13,
+            maxLength : 50,
             trim : true,
-            index : true,
         },
         password : {
             type : String , 
             required : true,
             trim : true,
-            minlength : 8,
+            minLength : 8,
         },
         email : {
             type : String ,
@@ -31,6 +29,7 @@ const UserSchema = new Schema(
             unique : true,
             lowercase : true,
             trim : true,
+            match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email'],
         },
         profile_picture : {
             type : String ,
@@ -76,6 +75,11 @@ const UserSchema = new Schema(
         timestamps : true
     }
 )
+
+// Indexes for better performance
+UserSchema.index({ email: 1 });
+UserSchema.index({ username: 1 });
+UserSchema.index({ refreshToken: 1 });
 
 // Compare password
 UserSchema.methods.isPasswordCorrect = async function (password) {

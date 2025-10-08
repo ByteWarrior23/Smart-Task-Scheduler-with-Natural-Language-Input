@@ -1,4 +1,4 @@
-import mongoose , { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 const TaskSchema = new Schema(
     {
@@ -13,7 +13,7 @@ const TaskSchema = new Schema(
             type : String ,
             required : true,    
             trim : true,
-            maxLength : 200, 
+            maxLength : 1000, 
             index : true,
         },
         status : {
@@ -94,11 +94,23 @@ const TaskSchema = new Schema(
         time_required : {
             type : Number , // in minutes
             default : null,
+            min: 1,
+            max: 10080, // Max 1 week in minutes
         }
     },
     {
         timestamps : true
     }
 )
+
+// Indexes for better performance
+TaskSchema.index({ owner: 1, status: 1 });
+TaskSchema.index({ owner: 1, priority: 1 });
+TaskSchema.index({ owner: 1, deadline: 1 });
+TaskSchema.index({ owner: 1, category: 1 });
+TaskSchema.index({ owner: 1, archived: 1 });
+TaskSchema.index({ owner: 1, recurring: 1 });
+TaskSchema.index({ parent_task_id: 1 });
+TaskSchema.index({ dependencies: 1 });
 
 export const Task = mongoose.model("Task" , TaskSchema);

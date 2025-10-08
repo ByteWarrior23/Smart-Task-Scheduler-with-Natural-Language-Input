@@ -40,8 +40,72 @@ export const parse = async (text, options = {}) => {
         // Extract dates using chrono
         const chronoResult = chrono.parse(text);
         if (chronoResult.length > 0) {
-            deadline = chronoResult[0].start.date();
-            confidence += 0.3;
+            // Intelligent deadline detection - look for deadline keywords
+            const deadlineKeywords = [
+                'deadline', 'due', 'submit by', 'submit', 'by', 'until', 'before', 
+                'expires', 'expire', 'end', 'finish by', 'complete by', 'deliver by',
+                'hand in', 'turn in', 'due date', 'deadline is', 'due on', 'submit on'
+            ];
+            
+            let foundDeadline = false;
+            let deadlineDate = null;
+            let maxConfidence = 0;
+            
+            // First, look for explicit deadline keywords
+            for (const dateResult of chronoResult) {
+                const dateText = dateResult.text.toLowerCase();
+                const contextBefore = text.substring(Math.max(0, dateResult.index - 50), dateResult.index).toLowerCase();
+                const contextAfter = text.substring(dateResult.index, Math.min(text.length, dateResult.index + 50)).toLowerCase();
+                const fullContext = contextBefore + ' ' + dateText + ' ' + contextAfter;
+                
+                // Check if this date is associated with deadline keywords
+                for (const keyword of deadlineKeywords) {
+                    if (fullContext.includes(keyword)) {
+                        deadlineDate = dateResult.start.date();
+                        maxConfidence = Math.max(maxConfidence, 0.8); // High confidence for explicit deadline
+                        foundDeadline = true;
+                        break;
+                    }
+                }
+            }
+            
+            // If no explicit deadline found, look for temporal indicators
+            if (!foundDeadline) {
+                for (const dateResult of chronoResult) {
+                    const dateText = dateResult.text.toLowerCase();
+                    const contextBefore = text.substring(Math.max(0, dateResult.index - 30), dateResult.index).toLowerCase();
+                    const contextAfter = text.substring(dateResult.index, Math.min(text.length, dateResult.index + 30)).toLowerCase();
+                    const fullContext = contextBefore + ' ' + dateText + ' ' + contextAfter;
+                    
+                    // Look for temporal indicators that suggest this is a deadline
+                    const temporalIndicators = [
+                        'on', 'at', 'for', 'meeting on', 'call on', 'presentation on',
+                        'review on', 'check on', 'follow up on', 'remind on'
+                    ];
+                    
+                    for (const indicator of temporalIndicators) {
+                        if (fullContext.includes(indicator)) {
+                            deadlineDate = dateResult.start.date();
+                            maxConfidence = Math.max(maxConfidence, 0.6); // Medium confidence for temporal indicators
+                            foundDeadline = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // If still no deadline found, use the last date mentioned (often the actual deadline)
+            if (!foundDeadline && chronoResult.length > 0) {
+                // Sort dates by position in text (last mentioned is often the deadline)
+                const sortedDates = chronoResult.sort((a, b) => b.index - a.index);
+                deadlineDate = sortedDates[0].start.date();
+                maxConfidence = 0.4; // Lower confidence for fallback
+            }
+            
+            if (deadlineDate) {
+                deadline = deadlineDate;
+                confidence += maxConfidence;
+            }
         }
 
         // Extract duration using comprehensive patterns
@@ -368,7 +432,6 @@ export const detectConflicts = async (userId, start, duration) => {
 // Recurring task management functions
 export const generateRecurringTasks = async (userId, taskData, rruleString, endDate) => {
     const { Task } = await import('../models/task.model.js');
-    const { RRule } = await import('rrule');
     
     try {
         const rrule = RRule.fromString(rruleString);
@@ -462,4 +525,80 @@ export const deleteRecurringSeries = async (taskId, deleteType = 'this') => {
         
         return await Task.deleteMany({ _id: { $in: seriesTasks.map(t => t._id) } });
     }
+};
+
+export const getDailySlotsAndConflicts = async (userId, window = 7, slotDuration = 30) => {
+    const { Task } = await import('../models/task.model.js');
+    const now = new Date();
+    const workingHours = { start: 9, end: 17 };
+
+    // Fetch upcoming tasks
+    const existingTasks = await Task.find({
+        owner: userId,
+        archived: false,
+        deadline: { $gte: now },
+        time_required: { $exists: true, $ne: null }
+    }).sort({ deadline: 1 });
+
+    const results = [];
+
+    for (let day = 0; day < window; day++) {
+        const currentDate = new Date(now);
+        currentDate.setDate(currentDate.getDate() + day);
+
+        // Skip weekends
+        if (currentDate.getDay() === 0 || currentDate.getDay() === 6) continue;
+
+        const dayStart = new Date(currentDate);
+        dayStart.setHours(workingHours.start, 0, 0, 0);
+
+        const dayEnd = new Date(currentDate);
+        dayEnd.setHours(workingHours.end, 0, 0, 0);
+
+        // Tasks on this day
+        const dayTasks = existingTasks.filter(task => {
+            const taskDate = new Date(task.deadline);
+            return taskDate.toDateString() === currentDate.toDateString();
+        });
+
+        // Prepare free slots
+        const freeSlots = [];
+        let currentTime = new Date(dayStart);
+
+        while (currentTime < dayEnd) {
+            const slotEnd = new Date(currentTime.getTime() + slotDuration * 60000);
+
+            // Check conflict
+            const overlappingTasks = dayTasks.filter(task => {
+                const taskStart = new Date(task.deadline);
+                const taskEnd = new Date(taskStart.getTime() + task.time_required * 60000);
+                return currentTime < taskEnd && slotEnd > taskStart;
+            });
+
+            if (overlappingTasks.length === 0 && slotEnd <= dayEnd) {
+                freeSlots.push({
+                    start: currentTime.toISOString(),
+                    end: slotEnd.toISOString(),
+                    duration: slotDuration
+                });
+            }
+
+            currentTime.setMinutes(currentTime.getMinutes() + 30); // next slot
+        }
+
+        results.push({
+            date: currentDate.toDateString(),
+            freeSlots,
+            overlappingTasks: dayTasks.map(task => ({
+                taskId: task._id,
+                title: task.title,
+                start: task.deadline,
+                end: new Date(task.deadline.getTime() + task.time_required * 60000),
+                duration: task.time_required,
+                priority: task.priority
+            }))
+        });
+    }
+
+    return results;
 };

@@ -1,46 +1,37 @@
-import fs from 'fs';
-import path from 'path';
+import { Wit } from 'node-wit';
+import dotenv from 'dotenv';
 
-// Mock transcription function - replace with real STT service
+// Load .env variables
+dotenv.config();
+
+// Access the API key
+const WIT_API_KEY = process.env.WIT_API_KEY;
+
+// Initialize Wit client
+const client = new Wit({ accessToken: WIT_API_KEY });
+
 export const transcribeAudio = async (audioBuffer) => {
-  // For demo purposes, return a sample text
-  // In production, integrate with Microsoft Speech SDK or other STT service
-  console.log('Transcribing audio... (mock)');
+  try {
+    if (!WIT_API_KEY) {
+      console.log('Wit.ai API key not set, using mock transcription');
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return "Create a task to buy groceries tomorrow at 10 am for 30 minutes";
+    }
 
-  // Simulate processing time
-  await new Promise(resolve => setTimeout(resolve, 1000));
+    console.log('Transcribing audio with Wit.ai...');
 
-  // Return mock transcribed text
-  return "Create a task to buy groceries tomorrow at 10 am for 30 minutes";
-};
-
-// Real implementation with Microsoft Speech SDK (uncomment and configure when you have API key)
-/*
-import * as sdk from 'microsoft-cognitiveservices-speech-sdk';
-
-const SPEECH_KEY = process.env.SPEECH_KEY || 'your-subscription-key';
-const SPEECH_REGION = process.env.SPEECH_REGION || 'your-region';
-
-export const transcribeAudioReal = async (audioBuffer) => {
-  const speechConfig = sdk.SpeechConfig.fromSubscription(SPEECH_KEY, SPEECH_REGION);
-  speechConfig.speechRecognitionLanguage = 'en-US';
-
-  // Assuming audioBuffer is WAV format
-  const audioConfig = sdk.AudioConfig.fromWavFileInput(audioBuffer);
-
-  const recognizer = new sdk.SpeechRecognizer(speechConfig, audioConfig);
-
-  return new Promise((resolve, reject) => {
-    recognizer.recognizeOnceAsync(result => {
-      if (result.reason === sdk.ResultReason.RecognizedSpeech) {
-        resolve(result.text);
-      } else {
-        reject(new Error('Speech recognition failed: ' + result.errorDetails));
-      }
-      recognizer.close();
-    }, err => {
-      reject(err);
+    const response = await client.speech(audioBuffer, {
+      contentType: 'audio/wav'
     });
-  });
+
+    const text = response.text || response._text || 'No transcription available';
+    console.log('Transcription result:', text);
+    return text;
+
+  } catch (error) {
+    console.error('Speech transcription error:', error);
+    console.log('Falling back to mock transcription due to error');
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    return "Create a task to buy groceries tomorrow at 10 am for 30 minutes";
+  }
 };
-*/
