@@ -2,6 +2,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.routes.js";
 import taskRoutes from "./routes/task.routes.js";
+import voiceRoutes from "./routes/voice.routes.js";
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.use(cookieParser());
 // Routes
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/tasks", taskRoutes);
+app.use("/api/v1/voice", voiceRoutes);
 
 // Global error handler
 app.use((err, req, res, next) => {

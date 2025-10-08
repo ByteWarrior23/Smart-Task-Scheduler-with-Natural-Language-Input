@@ -1,9 +1,13 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+import { validateEnvironment } from "../validate-env.js";
 import app from "./app.js";
 import connectDB from "./db/index.js";
 import { startReminderScheduler } from "./services/cron.scheduler.js";
+
+// Validate environment variables
+validateEnvironment();
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
