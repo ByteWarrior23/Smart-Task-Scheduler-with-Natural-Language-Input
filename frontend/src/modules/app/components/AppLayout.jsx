@@ -1,31 +1,99 @@
-import { AppBar, Avatar, Box, Container, Divider, IconButton, ListItemIcon, Menu, MenuItem, Toolbar, Tooltip, Typography } from '@mui/material';
+import { AppBar, Avatar, Box, Container, Divider, Drawer, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Menu, MenuItem, Toolbar, Tooltip, Typography, useMediaQuery, useTheme } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import Logout from '@mui/icons-material/Logout';
 import Settings from '@mui/icons-material/Settings';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import TaskIcon from '@mui/icons-material/Task';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import VoiceChatIcon from '@mui/icons-material/VoiceChat';
+import WorkIcon from '@mui/icons-material/Work';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
 import { useState } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useAuth } from '../../auth/AuthProvider';
+import { useColorMode } from '../../../main';
 
 export function AppLayout({ children }) {
   const [anchorEl, setAnchorEl] = useState(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const open = Boolean(anchorEl);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { toggleColorMode } = useColorMode();
 
   const handleOpen = (event) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
 
+  const menuItems = [
+    { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
+    { text: 'Tasks', icon: <TaskIcon />, path: '/tasks' },
+    { text: 'Recurring Tasks', icon: <TaskIcon />, path: '/recurring' },
+    { text: 'Voice', icon: <VoiceChatIcon />, path: '/voice' },
+    { text: 'Jobs', icon: <WorkIcon />, path: '/jobs' },
+    ...(user?.role === 'admin' ? [{ text: 'Admin', icon: <AdminPanelSettingsIcon />, path: '/admin' }] : []),
+  ];
+
+  const drawerWidth = 240;
+
+  const drawer = (
+    <Box>
+      <Toolbar>
+        <Typography variant="h6" sx={{ fontWeight: 700 }}>
+          TaskMaster
+        </Typography>
+      </Toolbar>
+      <Divider />
+      <List>
+        {menuItems.map((item) => (
+          <ListItem key={item.text} disablePadding>
+            <ListItemButton
+              component={RouterLink}
+              to={item.path}
+              selected={location.pathname === item.path}
+              sx={{
+                '&.Mui-selected': {
+                  bgcolor: 'primary.main',
+                  color: 'primary.contrastText',
+                  '& .MuiListItemIcon-root': { color: 'primary.contrastText' },
+                },
+              }}
+            >
+              <ListItemIcon>
+                {item.icon}
+              </ListItemIcon>
+              <ListItemText primary={item.text} />
+            </ListItemButton>
+          </ListItem>
+        ))}
+      </List>
+    </Box>
+  );
+
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-      <AppBar position="sticky" color="default" elevation={0} sx={{ borderBottom: 1, borderColor: 'divider' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
+      <AppBar position="fixed" sx={{ width: { md: `calc(100% - ${drawerWidth}px)` }, ml: { md: `${drawerWidth}px` } }}>
         <Toolbar>
-          <IconButton edge="start" color="inherit" sx={{ mr: 2 }} component={RouterLink} to="/tasks">
+          <IconButton
+            color="inherit"
+            edge="start"
+            onClick={() => setDrawerOpen(!drawerOpen)}
+            sx={{ mr: 2, display: { md: 'none' } }}
+          >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 700 }} component={RouterLink} to="/tasks" color="inherit" style={{ textDecoration: 'none' }}>
-            TaskMaster
+          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 700 }}>
+            {menuItems.find(item => item.path === location.pathname)?.text || 'TaskMaster'}
           </Typography>
+          <Tooltip title="Toggle theme">
+            <IconButton onClick={toggleColorMode} color="inherit" sx={{ mr: 1 }}>
+              {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+            </IconButton>
+          </Tooltip>
           {!!user && (
             <>
               <Tooltip title={user.fullname || user.username}>
@@ -63,9 +131,39 @@ export function AppLayout({ children }) {
           )}
         </Toolbar>
       </AppBar>
-      <Container maxWidth="lg" sx={{ py: 3 }}>
-        {children}
-      </Container>
+      <Box
+        component="nav"
+        sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
+      >
+        <Drawer
+          variant={isMobile ? 'temporary' : 'permanent'}
+          open={isMobile ? drawerOpen : true}
+          onClose={() => setDrawerOpen(false)}
+          ModalProps={{ keepMounted: true }}
+          sx={{
+            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+          }}
+        >
+          {drawer}
+        </Drawer>
+      </Box>
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          p: 3,
+          width: { md: `calc(100% - ${drawerWidth}px)` },
+        }}
+      >
+        <Toolbar />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          {children}
+        </motion.div>
+      </Box>
     </Box>
   );
 }

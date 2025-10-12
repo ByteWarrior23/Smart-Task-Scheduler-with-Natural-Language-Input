@@ -1,7 +1,13 @@
-# TODO for Frontend CSS and Bug Check
+# TODO for Crazy Frontend Redesign
 
-- [x] Create src/index.css with global styles in ../frontend
-- [x] Import index.css in ../frontend/src/main.jsx
-- [x] Run eslint to check for linting bugs in frontend (unable to run due to install issue, but code review shows no obvious bugs)
-- [x] Run tests in frontend (unable to run due to install issue)
-- [x] Run dev server and check for runtime bugs using browser (unable to run due to install issue)
+- [x] Update MUI theme for modern colors and dark mode
+- [x] Enhance AppLayout with sidebar navigation and animations
+- [x] Redesign TasksPage to cover all backend features (search, sort, filter, comments, reminders, recurring)
+- [x] Add Dashboard page with analytics and stats
+- [ ] Improve Login/Register pages with better design
+- [ ] Enhance Profile and other auth pages
+- [ ] Update VoicePage for speech features
+- [ ] Improve JobsPage and AdminPage
+- [x] Add global animations and transitions
+- [x] Add gradient background and glassmorphism effects
+- [x] Test the redesigned frontend (code review shows no issues)

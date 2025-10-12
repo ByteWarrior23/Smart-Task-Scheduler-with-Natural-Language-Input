@@ -15,6 +15,7 @@ import { AdminPage } from '../admin/pages/AdminPage';
 import { RequireAuth } from '../auth/RequireAuth';
 import { RequireAdmin } from '../auth/RequireAdmin';
 import { NotFoundPage } from './components/NotFoundPage';
+import { DashboardPage } from './pages/DashboardPage';
 
 export default function App() {
   return (
@@ -24,8 +25,8 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
 
-          <Route element={<RequireAuth />}> 
-            <Route index element={<Navigate to="/tasks" replace />} />
+          <Route element={<RequireAuth />}>
+            <Route index element={<DashboardPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/change-password" element={<ChangePasswordPage />} />
             <Route path="/email-config" element={<EmailConfigPage />} />

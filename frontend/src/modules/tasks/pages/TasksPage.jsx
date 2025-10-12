@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react';
-import { Alert, Box, Button, Card, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Stack, Table, TableBody, TableCell, TableHead, TableRow, TextField, Tooltip, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, Fab, Grid, IconButton, MenuItem, Stack, TextField, Tooltip, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import UndoIcon from '@mui/icons-material/Undo';
+import ScheduleIcon from '@mui/icons-material/Schedule';
+import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
+import CategoryIcon from '@mui/icons-material/Category';
 import { api } from '../../../shared/api/client';
 import dayjs from 'dayjs';
+import { motion } from 'framer-motion';
 
 export function TasksPage() {
   const [tasks, setTasks] = useState([]);
@@ -98,51 +102,86 @@ export function TasksPage() {
 
       {error && <Alert severity="error">{error}</Alert>}
 
-      <Card>
-        <CardContent>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>Title</TableCell>
-                <TableCell>Description</TableCell>
-                <TableCell>Deadline</TableCell>
-                <TableCell>Priority</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Category</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {tasks.map((t) => (
-                <TableRow key={t._id} hover>
-                  <TableCell>{t.title}</TableCell>
-                  <TableCell>{t.description}</TableCell>
-                  <TableCell>{t.deadline ? dayjs(t.deadline).format('YYYY-MM-DD HH:mm') : '-'}</TableCell>
-                  <TableCell><Chip size="small" label={t.priority} color={t.priority === 'urgent' ? 'error' : t.priority === 'high' ? 'warning' : 'default'} /></TableCell>
-                  <TableCell>
-                    <Chip size="small" label={t.status} color={t.status === 'completed' ? 'success' : 'default'} />
-                  </TableCell>
-                  <TableCell>{t.category}</TableCell>
-                  <TableCell>
-                    <Tooltip title="Edit"><IconButton onClick={() => { setEditingId(t._id); setForm({ ...t, deadline: t.deadline ? dayjs(t.deadline).format('YYYY-MM-DDTHH:mm') : '' }); setOpen(true); }}><EditIcon /></IconButton></Tooltip>
-                    <Tooltip title={t.status === 'completed' ? 'Mark pending' : 'Mark complete'}>
-                      <IconButton onClick={() => onToggleStatus(t._id, t.status)}>
-                        {t.status === 'completed' ? <UndoIcon /> : <CheckCircleIcon />}
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Delete"><IconButton onClick={() => onDelete(t._id)}><DeleteIcon /></IconButton></Tooltip>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <Stack direction="row" justifyContent="flex-end" mt={2}>
-            <Button disabled={page === 1} onClick={() => setPage(p => Math.max(1, p-1))}>Previous</Button>
-            <Box sx={{ px: 2, display: 'flex', alignItems: 'center' }}>Page {page}</Box>
-            <Button onClick={() => setPage(p => p + 1)}>Next</Button>
-          </Stack>
-        </CardContent>
-      </Card>
+      <Grid container spacing={3}>
+        {tasks.map((t, index) => (
+          <Grid item xs={12} sm={6} md={4} lg={3} key={t._id}>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+            >
+              <Card
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  background: t.priority === 'urgent' ? 'linear-gradient(135deg, #ff6b6b, #ee5a52)' :
+                             t.priority === 'high' ? 'linear-gradient(135deg, #ffa726, #fb8c00)' :
+                             t.priority === 'medium' ? 'linear-gradient(135deg, #42a5f5, #1976d2)' :
+                             'linear-gradient(135deg, #66bb6a, #388e3c)',
+                  color: 'white',
+                  '&:hover': { transform: 'scale(1.05)', transition: 'transform 0.3s' },
+                }}
+              >
+                <CardContent sx={{ flexGrow: 1 }}>
+                  <Typography variant="h6" gutterBottom sx={{ fontWeight: 700 }}>
+                    {t.title}
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 2, opacity: 0.9 }}>
+                    {t.description}
+                  </Typography>
+                  <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+                    <ScheduleIcon fontSize="small" />
+                    <Typography variant="body2">
+                      {t.deadline ? dayjs(t.deadline).format('MMM DD, HH:mm') : 'No deadline'}
+                    </Typography>
+                  </Stack>
+                  <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+                    <PriorityHighIcon fontSize="small" />
+                    <Chip size="small" label={t.priority} sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }} />
+                  </Stack>
+                  <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+                    <CategoryIcon fontSize="small" />
+                    <Typography variant="body2">{t.category}</Typography>
+                  </Stack>
+                  <Chip
+                    size="small"
+                    label={t.status}
+                    sx={{
+                      bgcolor: t.status === 'completed' ? 'rgba(76,175,80,0.8)' : 'rgba(255,255,255,0.2)',
+                      color: 'white',
+                      mt: 1
+                    }}
+                  />
+                </CardContent>
+                <Box sx={{ p: 1, display: 'flex', justifyContent: 'space-between' }}>
+                  <Tooltip title="Edit">
+                    <IconButton size="small" onClick={() => { setEditingId(t._id); setForm({ ...t, deadline: t.deadline ? dayjs(t.deadline).format('YYYY-MM-DDTHH:mm') : '' }); setOpen(true); }} sx={{ color: 'white' }}>
+                      <EditIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title={t.status === 'completed' ? 'Mark pending' : 'Mark complete'}>
+                    <IconButton size="small" onClick={() => onToggleStatus(t._id, t.status)} sx={{ color: 'white' }}>
+                      {t.status === 'completed' ? <UndoIcon /> : <CheckCircleIcon />}
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Delete">
+                    <IconButton size="small" onClick={() => onDelete(t._id)} sx={{ color: 'white' }}>
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              </Card>
+            </motion.div>
+          </Grid>
+        ))}
+      </Grid>
+
+      <Stack direction="row" justifyContent="center" mt={3}>
+        <Button disabled={page === 1} onClick={() => setPage(p => Math.max(1, p-1))}>Previous</Button>
+        <Box sx={{ px: 2, display: 'flex', alignItems: 'center' }}>Page {page}</Box>
+        <Button onClick={() => setPage(p => p + 1)}>Next</Button>
+      </Stack>
 
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>{editingId ? 'Edit Task' : 'New Task'}</DialogTitle>
@@ -177,6 +216,10 @@ export function TasksPage() {
           </Stack>
         </CardContent>
       </Card>
+
+      <Fab color="primary" aria-label="add" sx={{ position: 'fixed', bottom: 16, right: 16 }} onClick={() => { setForm({ title: '', description: '', deadline: '', priority: 'medium', category: 'general', time_required: 60 }); setEditingId(null); setOpen(true); }}>
+        <AddIcon />
+      </Fab>
     </Stack>
   );
 }
