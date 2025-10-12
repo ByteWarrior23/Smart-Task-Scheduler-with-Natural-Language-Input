@@ -24,17 +24,17 @@ export function TaskDetailPage() {
   if (!task) return null;
 
   return (
-    <Box>
-      <Card>
+    <Box className="fade-in">
+      <Card className="shadow-sm">
         <CardContent>
-          <Stack gap={1}>
-            <Typography variant="h5" fontWeight={700}>{task.title}</Typography>
-            <Typography>{task.description}</Typography>
-            <Stack direction="row" gap={1}>
-              <Chip label={`Priority: ${task.priority}`} />
-              <Chip label={`Status: ${task.status}`} />
-              <Chip label={`Category: ${task.category}`} />
-              <Chip label={`Deadline: ${task.deadline ? dayjs(task.deadline).format('YYYY-MM-DD HH:mm') : '-'}`} />
+          <Stack gap={2}>
+            <Typography variant="h4" fontWeight={700}>{task.title}</Typography>
+            <Typography className="text-muted">{task.description}</Typography>
+            <Stack direction="row" gap={1} flexWrap="wrap">
+              <Chip size="small" color={task.priority === 'urgent' ? 'error' : task.priority === 'high' ? 'warning' : 'default'} label={`Priority: ${task.priority}`} />
+              <Chip size="small" color={task.status === 'completed' ? 'success' : 'default'} label={`Status: ${task.status}`} />
+              <Chip size="small" label={`Category: ${task.category}`} />
+              <Chip size="small" label={`Deadline: ${task.deadline ? dayjs(task.deadline).format('YYYY-MM-DD HH:mm') : '-'}`} />
             </Stack>
           </Stack>
         </CardContent>

@@ -46,7 +46,7 @@ export function RecurringTasksPage() {
 
   return (
     <Stack gap={2}>
-      <Card>
+      <Card className="shadow-sm">
         <CardContent>
           <Typography variant="h6" fontWeight={700}>Create Recurring Task</Typography>
           <Stack gap={2} mt={1}>
@@ -60,13 +60,13 @@ export function RecurringTasksPage() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="shadow-sm">
         <CardContent>
           <Typography variant="h6" fontWeight={700}>Update/Delete Recurring Series</Typography>
           <Stack gap={2} mt={1}>
             <TextField label="Task ID" value={selectedId} onChange={(e) => setSelectedId(e.target.value)} />
             <Stack direction={{ xs: 'column', sm: 'row' }} gap={2}>
-              <TextField select label="Update Type" value={updateType} onChange={(e) => setUpdateType(e.target.value)} sx={{ minWidth: 180 }}>
+              <TextField select label="Update Type" value={updateType} onChange={(e) => setUpdateType(e.target.value)} sx={{ minWidth: 180 }} SelectProps={{ native: true }}>
                 <option value="this">this</option>
                 <option value="following">following</option>
                 <option value="all">all</option>
@@ -74,7 +74,7 @@ export function RecurringTasksPage() {
               <Button variant="outlined" onClick={updateRecurring}>Update</Button>
             </Stack>
             <Stack direction={{ xs: 'column', sm: 'row' }} gap={2}>
-              <TextField select label="Delete Type" value={deleteType} onChange={(e) => setDeleteType(e.target.value)} sx={{ minWidth: 180 }}>
+              <TextField select label="Delete Type" value={deleteType} onChange={(e) => setDeleteType(e.target.value)} sx={{ minWidth: 180 }} SelectProps={{ native: true }}>
                 <option value="this">this</option>
                 <option value="following">following</option>
                 <option value="all">all</option>
@@ -87,10 +87,10 @@ export function RecurringTasksPage() {
 
       {error && <Alert severity="error">{error}</Alert>}
 
-      <Card>
+      <Card className="shadow-sm">
         <CardContent>
           <Typography variant="h6" fontWeight={700}>Recurring Tasks</Typography>
-          <Table size="small">
+          <Table size="small" className="table">
             <TableHead>
               <TableRow>
                 <TableCell>Title</TableCell>
@@ -100,7 +100,7 @@ export function RecurringTasksPage() {
             </TableHead>
             <TableBody>
               {tasks.map((t) => (
-                <TableRow key={t._id}>
+                <TableRow key={t._id} className="fade-in">
                   <TableCell>{t.title}</TableCell>
                   <TableCell>{t.deadline}</TableCell>
                   <TableCell>{t.rrule_string}</TableCell>

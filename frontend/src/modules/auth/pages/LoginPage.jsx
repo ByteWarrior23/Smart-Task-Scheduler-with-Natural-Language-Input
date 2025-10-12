@@ -26,20 +26,25 @@ export function LoginPage() {
   };
 
   return (
-    <Box maxWidth={420} mx="auto" mt={8}>
-      <Card>
-        <CardContent>
-          <Stack gap={2}>
-            <Typography variant="h5" fontWeight={700}>Welcome back</Typography>
-            {error && <Alert severity="error">{error}</Alert>}
-            <TextField label="Username" {...register('username')} error={!!errors.username} helperText={errors.username?.message} />
-            <TextField label="Email" {...register('email')} error={!!errors.email} helperText={errors.email?.message} />
-            <TextField label="Password" type="password" {...register('password')} error={!!errors.password} helperText={errors.password?.message} />
-            <Button variant="contained" onClick={handleSubmit(onSubmit)}>Login</Button>
-            <Typography variant="body2">No account? <a href="/register">Register</a></Typography>
-          </Stack>
-        </CardContent>
-      </Card>
+    <Box sx={{ display: 'grid', placeItems: 'center', minHeight: 'calc(100vh - 64px)' }}>
+      <Box maxWidth={440} width="100%" className="fade-in">
+        <Stack alignItems="center" mb={2}>
+          <Typography variant="h4" fontWeight={700}>Sign in</Typography>
+          <Typography variant="body2" className="text-muted">Welcome back to TaskMaster</Typography>
+        </Stack>
+        <Card className="shadow-md">
+          <CardContent>
+            <Stack gap={2}>
+              {error && <Alert severity="error">{error}</Alert>}
+              <TextField label="Username" {...register('username')} error={!!errors.username} helperText={errors.username?.message} fullWidth />
+              <TextField label="Email" {...register('email')} error={!!errors.email} helperText={errors.email?.message} fullWidth />
+              <TextField label="Password" type="password" {...register('password')} error={!!errors.password} helperText={errors.password?.message} fullWidth />
+              <Button size="large" variant="contained" onClick={handleSubmit(onSubmit)}>Continue</Button>
+              <Typography variant="body2" textAlign="center">No account? <a href="/register">Create one</a></Typography>
+            </Stack>
+          </CardContent>
+        </Card>
+      </Box>
     </Box>
   );
 }

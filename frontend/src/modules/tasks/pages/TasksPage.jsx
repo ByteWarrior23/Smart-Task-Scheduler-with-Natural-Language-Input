@@ -77,30 +77,30 @@ export function TasksPage() {
 
   return (
     <Stack gap={2}>
-      <Card>
+      <Card className="shadow-sm">
         <CardContent>
-          <Stack direction={{ xs: 'column', sm: 'row' }} gap={2} alignItems={{ sm: 'center' }}>
-            <TextField label="Search" value={query} onChange={(e) => setQuery(e.target.value)} sx={{ flex: 1 }} />
-            <TextField label="Category" value={category} onChange={(e) => setCategory(e.target.value)} sx={{ width: 200 }} />
-            <TextField select label="Sort" value={sort} onChange={(e) => setSort(e.target.value)} sx={{ width: 220 }}>
+          <Stack direction={{ xs: 'column', md: 'row' }} gap={2} alignItems={{ md: 'center' }}>
+            <TextField size="small" label="Search" value={query} onChange={(e) => setQuery(e.target.value)} sx={{ flex: 2 }} />
+            <TextField size="small" label="Category" value={category} onChange={(e) => setCategory(e.target.value)} sx={{ flex: 1, minWidth: 180 }} />
+            <TextField size="small" select label="Sort" value={sort} onChange={(e) => setSort(e.target.value)} sx={{ minWidth: 200 }}>
               <MenuItem value="created">Created</MenuItem>
               <MenuItem value="deadline-asc">Deadline (asc)</MenuItem>
               <MenuItem value="priority">Priority</MenuItem>
               <MenuItem value="time">Time Required</MenuItem>
             </TextField>
-            <TextField select label="Page size" value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))} sx={{ width: 160 }}>
+            <TextField size="small" select label="Page size" value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))} sx={{ minWidth: 140 }}>
               {[5,10,20,50].map(s => <MenuItem key={s} value={s}>{s}</MenuItem>)}
             </TextField>
-            <Button startIcon={<AddIcon />} variant="contained" onClick={() => { setForm({ title: '', description: '', deadline: '', priority: 'medium', category: 'general', time_required: 60 }); setEditingId(null); setOpen(true); }}>New Task</Button>
+            <Button size="medium" startIcon={<AddIcon />} variant="contained" onClick={() => { setForm({ title: '', description: '', deadline: '', priority: 'medium', category: 'general', time_required: 60 }); setEditingId(null); setOpen(true); }}>New Task</Button>
           </Stack>
         </CardContent>
       </Card>
 
       {error && <Alert severity="error">{error}</Alert>}
 
-      <Card>
+      <Card className="shadow-sm">
         <CardContent>
-          <Table size="small">
+          <Table size="small" className="table">
             <TableHead>
               <TableRow>
                 <TableCell>Title</TableCell>
@@ -114,7 +114,7 @@ export function TasksPage() {
             </TableHead>
             <TableBody>
               {tasks.map((t) => (
-                <TableRow key={t._id} hover>
+                <TableRow key={t._id} hover className="fade-in">
                   <TableCell>{t.title}</TableCell>
                   <TableCell>{t.description}</TableCell>
                   <TableCell>{t.deadline ? dayjs(t.deadline).format('YYYY-MM-DD HH:mm') : '-'}</TableCell>
@@ -136,10 +136,10 @@ export function TasksPage() {
               ))}
             </TableBody>
           </Table>
-          <Stack direction="row" justifyContent="flex-end" mt={2}>
+          <Stack direction="row" justifyContent="flex-end" mt={2} alignItems="center" gap={1}>
             <Button disabled={page === 1} onClick={() => setPage(p => Math.max(1, p-1))}>Previous</Button>
-            <Box sx={{ px: 2, display: 'flex', alignItems: 'center' }}>Page {page}</Box>
-            <Button onClick={() => setPage(p => p + 1)}>Next</Button>
+            <Box className="text-muted" sx={{ px: 2, display: 'flex', alignItems: 'center' }}>Page {page}</Box>
+            <Button variant="outlined" onClick={() => setPage(p => p + 1)}>Next</Button>
           </Stack>
         </CardContent>
       </Card>
@@ -167,7 +167,7 @@ export function TasksPage() {
         </DialogActions>
       </Dialog>
 
-      <Card>
+      <Card className="shadow-sm">
         <CardContent>
           <Typography variant="h6" fontWeight={700}>Quick Comment</Typography>
           <Stack direction={{ xs: 'column', sm: 'row' }} gap={2} mt={1}>
