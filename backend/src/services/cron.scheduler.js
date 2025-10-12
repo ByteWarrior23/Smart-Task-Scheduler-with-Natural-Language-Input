@@ -19,7 +19,7 @@ export const startReminderScheduler = () => {
     });
     
     // Check for overdue tasks every hour
-    cron.schedule('0 * * * *', async () => {
+    cron.schedule('10 * * * *', async () => { 
         console.log('Checking overdue tasks...');
         try {
             const results = await checkOverdueTasks();
@@ -53,3 +53,15 @@ export const stopReminderScheduler = () => {
     cron.getTasks().forEach(task => task.destroy());
     console.log('Reminder scheduler stopped');
 };
+
+/*
+ # ┌────────────── second (optional)
+ # │ ┌──────────── minute
+ # │ │ ┌────────── hour
+ # │ │ │ ┌──────── day of month
+ # │ │ │ │ ┌────── month
+ # │ │ │ │ │ ┌──── day of week
+ # │ │ │ │ │ │
+ # │ │ │ │ │ │
+ # * * * * * *
+ */

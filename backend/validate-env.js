@@ -42,7 +42,7 @@ function validateEnvironment() {
     }
     
     if (missingVars.length > 0) {
-        console.error('❌ Missing required environment variables:');
+        console.error('Missing required environment variables:');
         missingVars.forEach(varName => {
             console.error(`   - ${varName}`);
         });
@@ -50,7 +50,7 @@ function validateEnvironment() {
         process.exit(1);
     }
     
-    console.log('✅ Environment variables validated successfully');
+    console.log('Environment variables validated successfully');
 }
 
 // Export validation function
