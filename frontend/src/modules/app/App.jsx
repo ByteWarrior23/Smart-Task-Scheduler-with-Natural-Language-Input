@@ -8,7 +8,10 @@ import { ChangePasswordPage } from '../auth/pages/ChangePasswordPage';
 import { EmailConfigPage } from '../auth/pages/EmailConfigPage';
 import { TasksPage } from '../tasks/pages/TasksPage';
 import { TaskDetailPage } from '../tasks/pages/TaskDetailPage';
+import { ArchivePage } from '../tasks/pages/ArchivePage';
 import { RecurringTasksPage } from '../tasks/pages/RecurringTasksPage';
+import { NLPPage } from '../tasks/pages/NLPPage';
+import { AnalyticsPage } from '../tasks/pages/AnalyticsPage';
 import { VoicePage } from '../voice/pages/VoicePage';
 import { JobsPage } from '../jobs/pages/JobsPage';
 import { AdminPage } from '../admin/pages/AdminPage';
@@ -32,7 +35,10 @@ export default function App() {
 
             <Route path="/tasks" element={<TasksPage />} />
             <Route path="/tasks/:taskId" element={<TaskDetailPage />} />
+            <Route path="/archive" element={<ArchivePage />} />
             <Route path="/recurring" element={<RecurringTasksPage />} />
+            <Route path="/nlp" element={<NLPPage />} />
+            <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/voice" element={<VoicePage />} />
             <Route path="/jobs" element={<JobsPage />} />
             <Route element={<RequireAdmin />}>
