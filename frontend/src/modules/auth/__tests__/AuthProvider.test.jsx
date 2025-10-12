@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { AuthProvider, useAuth } from '../../auth/AuthProvider';
+import { AuthProvider, useAuth } from '../../AuthProvider';
 
 function ShowState() {
   const { user } = useAuth();
