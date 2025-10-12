@@ -17,8 +17,12 @@ export function AppLayout({ children }) {
   const handleClose = () => setAnchorEl(null);
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-      <AppBar position="sticky" color="default" elevation={0} sx={{ borderBottom: 1, borderColor: 'divider' }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', backgroundImage: 'radial-gradient( 40rem 20rem at -10% -10%, rgba(14,165,233,0.06), transparent ), radial-gradient( 40rem 20rem at 110% -10%, rgba(56,189,248,0.06), transparent )' }}>
+      <AppBar position="sticky" elevation={0} sx={{
+        background: 'linear-gradient(90deg, #0369a1 0%, #0ea5e9 100%)',
+        color: 'white',
+        borderBottom: '1px solid rgba(255,255,255,0.12)'
+      }}>
         <Toolbar>
           <IconButton edge="start" color="inherit" sx={{ mr: 2 }} component={RouterLink} to="/tasks">
             <MenuIcon />
@@ -63,7 +67,7 @@ export function AppLayout({ children }) {
           )}
         </Toolbar>
       </AppBar>
-      <Container maxWidth="lg" sx={{ py: 3 }}>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
         {children}
       </Container>
     </Box>
