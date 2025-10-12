@@ -9,7 +9,7 @@ export function getAuthTokens() {
   return accessToken ? { accessToken, refreshToken: refreshToken ?? undefined } : null;
 }
 
-export function setAuthTokens(tokens: { accessToken: string; refreshToken?: string }) {
+export function setAuthTokens(tokens) {
   localStorage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken);
   if (tokens.refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
 }
@@ -25,19 +25,19 @@ api.interceptors.request.use((config) => {
   const tokens = getAuthTokens();
   if (tokens?.accessToken) {
     config.headers = config.headers ?? {};
-    (config.headers as any)['Authorization'] = `Bearer ${tokens.accessToken}`;
+    config.headers['Authorization'] = `Bearer ${tokens.accessToken}`;
   }
   return config;
 });
 
 let isRefreshing = false;
-let pendingRequests: Array<(token: string | null) => void> = [];
+let pendingRequests = [];
 
-function subscribeTokenRefresh(cb: (token: string | null) => void) {
+function subscribeTokenRefresh(cb) {
   pendingRequests.push(cb);
 }
 
-function onRefreshed(token: string | null) {
+function onRefreshed(token) {
   pendingRequests.forEach((cb) => cb(token));
   pendingRequests = [];
 }
@@ -46,7 +46,7 @@ api.interceptors.response.use(
   (r) => r,
   async (error) => {
     const original = error.config;
-    const status: number = error?.response?.status;
+    const status = error?.response?.status;
 
     if (status === 401 && !original._retry) {
       if (isRefreshing) {

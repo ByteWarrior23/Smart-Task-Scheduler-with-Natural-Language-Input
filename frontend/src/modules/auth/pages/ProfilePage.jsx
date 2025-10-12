@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Alert, Box, Button, Card, CardContent, Stack, TextField, Typography } from '@mui/material';
 import { useAuth } from '../AuthProvider';
 import { api } from '../../../shared/api/client';
@@ -7,17 +7,17 @@ export function ProfilePage() {
   const { user } = useAuth();
   const [form, setForm] = useState({ username: user?.username ?? '', email: user?.email ?? '', fullname: user?.fullname ?? '', profile_picture: user?.profile_picture ?? '' });
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+  const handleChange = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
   const onSave = async () => {
     setSaving(true); setError(null); setSuccess(null);
     try {
-      const res = await api.patch('/api/v1/auth/update', form);
+      await api.patch('/api/v1/auth/update', form);
       setSuccess('Profile updated');
-    } catch (e: any) {
+    } catch (e) {
       setError(e?.response?.data?.message || 'Update failed');
     } finally {
       setSaving(false);

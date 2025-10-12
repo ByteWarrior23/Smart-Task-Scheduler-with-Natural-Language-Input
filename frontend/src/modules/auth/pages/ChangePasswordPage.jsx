@@ -5,17 +5,17 @@ import { api } from '../../../shared/api/client';
 export function ChangePasswordPage() {
   const [form, setForm] = useState({ currentPassword: '', newPassword: '' });
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+  const handleChange = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
   const onSave = async () => {
     setSaving(true); setError(null); setSuccess(null);
     try {
       await api.patch('/api/v1/auth/change-password', form);
       setSuccess('Password changed successfully');
-    } catch (e: any) {
+    } catch (e) {
       setError(e?.response?.data?.message || 'Change password failed');
     } finally { setSaving(false); }
   };

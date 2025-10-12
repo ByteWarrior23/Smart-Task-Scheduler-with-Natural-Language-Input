@@ -3,17 +3,17 @@ import MenuIcon from '@mui/icons-material/Menu';
 import Logout from '@mui/icons-material/Logout';
 import Settings from '@mui/icons-material/Settings';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
-import { PropsWithChildren, useState } from 'react';
+import { useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthProvider';
 
-export function AppLayout({ children }: PropsWithChildren) {
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+export function AppLayout({ children }) {
+  const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const handleOpen = (event: React.MouseEvent<HTMLElement>) => setAnchorEl(event.currentTarget);
+  const handleOpen = (event) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
 
   return (

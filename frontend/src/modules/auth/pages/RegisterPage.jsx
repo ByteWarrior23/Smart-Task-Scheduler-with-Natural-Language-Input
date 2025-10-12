@@ -6,24 +6,23 @@ import { useState } from 'react';
 import { useAuth } from '../AuthProvider';
 
 const schema = z.object({
-  username: z.string().min(1, 'Username or Email is required').optional(),
-  email: z.string().email('Invalid email').optional(),
-  password: z.string().min(6, 'Password is required'),
-}).refine((data) => !!data.username || !!data.email, { message: 'Provide username or email', path: ['username'] });
+  username: z.string().min(3),
+  email: z.string().email(),
+  fullname: z.string().min(1),
+  password: z.string().min(8),
+});
 
-type FormData = z.infer<typeof schema>;
+export function RegisterPage() {
+  const { register: registerUser } = useAuth();
+  const { register, handleSubmit, formState: { errors } } = useForm({ resolver: zodResolver(schema) });
+  const [error, setError] = useState(null);
 
-export function LoginPage() {
-  const { login } = useAuth();
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({ resolver: zodResolver(schema) });
-  const [error, setError] = useState<string | null>(null);
-
-  const onSubmit = async (values: FormData) => {
+  const onSubmit = async (values) => {
     setError(null);
     try {
-      await login(values);
-    } catch (e: any) {
-      setError(e?.response?.data?.message || 'Login failed');
+      await registerUser(values);
+    } catch (e) {
+      setError(e?.response?.data?.message || 'Registration failed');
     }
   };
 
@@ -32,13 +31,14 @@ export function LoginPage() {
       <Card>
         <CardContent>
           <Stack gap={2}>
-            <Typography variant="h5" fontWeight={700}>Welcome back</Typography>
+            <Typography variant="h5" fontWeight={700}>Create your account</Typography>
             {error && <Alert severity="error">{error}</Alert>}
             <TextField label="Username" {...register('username')} error={!!errors.username} helperText={errors.username?.message} />
+            <TextField label="Full name" {...register('fullname')} error={!!errors.fullname} helperText={errors.fullname?.message} />
             <TextField label="Email" {...register('email')} error={!!errors.email} helperText={errors.email?.message} />
             <TextField label="Password" type="password" {...register('password')} error={!!errors.password} helperText={errors.password?.message} />
-            <Button variant="contained" onClick={handleSubmit(onSubmit)}>Login</Button>
-            <Typography variant="body2">No account? <a href="/register">Register</a></Typography>
+            <Button variant="contained" onClick={handleSubmit(onSubmit)}>Register</Button>
+            <Typography variant="body2">Have an account? <a href="/login">Login</a></Typography>
           </Stack>
         </CardContent>
       </Card>

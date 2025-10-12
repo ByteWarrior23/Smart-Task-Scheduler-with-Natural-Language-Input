@@ -7,17 +7,17 @@ export function EmailConfigPage() {
     emailConfig: { service: 'gmail', user: '', pass: '', host: '', port: 587, secure: false }
   });
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
 
-  const setField = (key: string, value: any) => setForm((f) => ({ emailConfig: { ...f.emailConfig, [key]: value } }));
+  const setField = (key, value) => setForm((f) => ({ emailConfig: { ...f.emailConfig, [key]: value } }));
 
   const onSave = async () => {
     setSaving(true); setError(null); setSuccess(null);
     try {
       await api.patch('/api/v1/auth/email-config', form);
       setSuccess('Email configuration saved');
-    } catch (e: any) {
+    } catch (e) {
       setError(e?.response?.data?.message || 'Failed to save');
     } finally { setSaving(false); }
   };

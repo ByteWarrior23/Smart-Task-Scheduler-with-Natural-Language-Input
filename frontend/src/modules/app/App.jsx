@@ -1,6 +1,4 @@
-import { useMemo } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import { QueryClientProvider } from '@tanstack/react-query';
 import { AppLayout } from './components/AppLayout';
 import { AuthProvider } from '../auth/AuthProvider';
 import { LoginPage } from '../auth/pages/LoginPage';
