@@ -19,6 +19,7 @@ const ArchivedTasksPage = React.lazy(() => import('./pages/tasks/ArchivedTasksPa
 const AnalyticsPage = React.lazy(() => import('./pages/analytics/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
 const SettingsPage = React.lazy(() => import('./pages/settings/SettingsPage').then(m => ({ default: m.SettingsPage })));
 const ProfilePage = React.lazy(() => import('./pages/profile/ProfilePage').then(m => ({ default: m.ProfilePage })));
+const BackendFeatures = React.lazy(() => import('./pages/BackendFeatures').then(m => ({ default: m.BackendFeatures })));
 
 // Create query client
 const queryClient = new QueryClient({
@@ -109,6 +110,11 @@ function AppRoutes() {
         <Route path="/reminders" element={
           <React.Suspense fallback={<Loading />}>
             <Dashboard />
+          </React.Suspense>
+        } />
+        <Route path="/features" element={
+          <React.Suspense fallback={<Loading />}>
+            <BackendFeatures />
           </React.Suspense>
         } />
       </Route>
