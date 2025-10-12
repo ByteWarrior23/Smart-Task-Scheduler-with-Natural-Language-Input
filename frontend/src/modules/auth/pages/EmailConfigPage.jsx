@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Alert, Box, Button, Card, CardContent, FormControlLabel, Stack, Switch, TextField, Typography } from '@mui/material';
 import { api } from '../../../shared/api/client';
+import { PageHeader } from '../../../shared/components/PageHeader';
 
 export function EmailConfigPage() {
   const [form, setForm] = useState({
@@ -24,9 +25,9 @@ export function EmailConfigPage() {
 
   return (
     <Box maxWidth={560} mx="auto" mt={4}>
+      <PageHeader title="Email Configuration" subtitle="Configure SMTP settings" />
       <Card>
         <CardContent>
-          <Typography variant="h6" fontWeight={700} mb={2}>Email Configuration</Typography>
           <Stack gap={2}>
             {error && <Alert severity="error">{error}</Alert>}
             {success && <Alert severity="success">{success}</Alert>}

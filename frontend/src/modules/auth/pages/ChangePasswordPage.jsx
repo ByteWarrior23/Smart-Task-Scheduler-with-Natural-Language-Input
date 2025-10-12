@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Alert, Box, Button, Card, CardContent, Stack, TextField, Typography } from '@mui/material';
 import { api } from '../../../shared/api/client';
+import { PageHeader } from '../../../shared/components/PageHeader';
 
 export function ChangePasswordPage() {
   const [form, setForm] = useState({ currentPassword: '', newPassword: '' });
@@ -22,9 +23,9 @@ export function ChangePasswordPage() {
 
   return (
     <Box maxWidth={560} mx="auto" mt={4}>
+      <PageHeader title="Change Password" subtitle="Update your account password" />
       <Card>
         <CardContent>
-          <Typography variant="h6" fontWeight={700} mb={2}>Change Password</Typography>
           <Stack gap={2}>
             {error && <Alert severity="error">{error}</Alert>}
             {success && <Alert severity="success">{success}</Alert>}

@@ -1,4 +1,5 @@
 import { Alert, Box, Button, Card, CardContent, Stack, TextField, Typography } from '@mui/material';
+import { PageHeader } from '../../../shared/components/PageHeader';
 import { useState } from 'react';
 import { api } from '../../../shared/api/client';
 
@@ -19,9 +20,9 @@ export function AdminPage() {
 
   return (
     <Box maxWidth={560} mx="auto" mt={4}>
+      <PageHeader title="Admin Tools" subtitle="Operational tools and diagnostics" />
       <Card>
         <CardContent>
-          <Typography variant="h6" fontWeight={700} mb={2}>Admin Tools</Typography>
           <Stack gap={2}>
             {error && <Alert severity="error">{error}</Alert>}
             {note && <Alert severity="success">{note}</Alert>}

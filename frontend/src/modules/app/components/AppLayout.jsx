@@ -1,24 +1,28 @@
-import { AppBar, Avatar, Box, Container, Divider, IconButton, ListItemIcon, Menu, MenuItem, Toolbar, Tooltip, Typography } from '@mui/material';
+import { AppBar, Avatar, Box, Button, Container, Divider, IconButton, ListItemIcon, Menu, MenuItem, Toolbar, Tooltip, Typography } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
 import Logout from '@mui/icons-material/Logout';
 import Settings from '@mui/icons-material/Settings';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import { useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthProvider';
+import { useThemeMode } from '../../../shared/theme/ThemeProvider';
 
 export function AppLayout({ children }) {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { mode, toggleMode } = useThemeMode();
 
   const handleOpen = (event) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-      <AppBar position="sticky" color="default" elevation={0} sx={{ borderBottom: 1, borderColor: 'divider' }}>
+      <AppBar position="sticky" color="default" elevation={0} sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
         <Toolbar>
           <IconButton edge="start" color="inherit" sx={{ mr: 2 }} component={RouterLink} to="/tasks">
             <MenuIcon />
@@ -26,6 +30,13 @@ export function AppLayout({ children }) {
           <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 700 }} component={RouterLink} to="/tasks" color="inherit" style={{ textDecoration: 'none' }}>
             TaskMaster
           </Typography>
+          <Button component={RouterLink} to="/tasks" color="inherit">Tasks</Button>
+          <Button component={RouterLink} to="/recurring" color="inherit">Recurring</Button>
+          <Button component={RouterLink} to="/voice" color="inherit">Voice</Button>
+          <Button component={RouterLink} to="/jobs" color="inherit">Jobs</Button>
+          <IconButton sx={{ ml: 1 }} onClick={toggleMode} color="inherit" aria-label="Toggle theme">
+            {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+          </IconButton>
           {!!user && (
             <>
               <Tooltip title={user.fullname || user.username}>
@@ -65,6 +76,9 @@ export function AppLayout({ children }) {
       </AppBar>
       <Container maxWidth="lg" sx={{ py: 3 }}>
         {children}
+        <Box component="footer" sx={{ mt: 6, py: 3, color: 'text.secondary', fontSize: 12, textAlign: 'center' }}>
+          © {new Date().getFullYear()} TaskMaster
+        </Box>
       </Container>
     </Box>
   );

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Alert, Box, Button, Card, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Stack, Table, TableBody, TableCell, TableHead, TableRow, TextField, Tooltip, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -7,6 +7,13 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import UndoIcon from '@mui/icons-material/Undo';
 import { api } from '../../../shared/api/client';
 import dayjs from 'dayjs';
+import AlarmAddIcon from '@mui/icons-material/AlarmAdd';
+import ArchiveIcon from '@mui/icons-material/Archive';
+import UnarchiveIcon from '@mui/icons-material/Unarchive';
+import AutoModeIcon from '@mui/icons-material/AutoMode';
+import { ReminderDialog } from '../../../shared/components/ReminderDialog';
+import { PageHeader } from '../../../shared/components/PageHeader';
+import { CenteredSpinner } from '../../../shared/components/CenteredSpinner';
 
 export function TasksPage() {
   const [tasks, setTasks] = useState([]);
@@ -17,10 +24,14 @@ export function TasksPage() {
   const [sort, setSort] = useState('created');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [form, setForm] = useState({ title: '', description: '', deadline: '', priority: 'medium', category: 'general', time_required: 60 });
+  const [form, setForm] = useState({ title: '', description: '', deadline: '', priority: 'medium', category: 'general', time_required: 60, natural_language_input: '' });
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [commentText, setCommentText] = useState('');
+  const [reminderFor, setReminderFor] = useState(null);
+  const [nlpText, setNlpText] = useState('');
+  const [nlpSuggestions, setNlpSuggestions] = useState(null);
+  const [nlpError, setNlpError] = useState(null);
 
   const fetchTasks = async () => {
     setLoading(true); setError(null);
@@ -29,7 +40,7 @@ export function TasksPage() {
       if (query) url = `/api/v1/tasks/search?query=${encodeURIComponent(query)}`;
       else if (category) url = `/api/v1/tasks/category/${encodeURIComponent(category)}`;
       else if (sort === 'deadline-asc') url = '/api/v1/tasks/sort/deadline';
-      else if (sort === 'priority') url = '/api/v1/tasks/sort/priority';
+      else if (sort === 'deadline-desc') url = '/api/v1/tasks/sort/priority';
       else if (sort === 'created') url = '/api/v1/tasks/sort/created';
       else if (sort === 'time') url = '/api/v1/tasks/sort/time-required';
       const res = await api.get(url);
@@ -41,11 +52,13 @@ export function TasksPage() {
     } finally { setLoading(false); }
   };
 
+  const visibleTasks = useMemo(() => tasks, [tasks]);
+
   useEffect(() => { fetchTasks(); }, [query, category, sort, page, pageSize]);
 
   const onCreate = async () => {
     try {
-      await api.post('/api/v1/tasks', { ...form, deadline: form.deadline || null });
+      await api.post('/api/v1/tasks', { ...form, deadline: form.deadline || null, natural_language_input: form.natural_language_input || undefined });
       setOpen(false); setForm({ title: '', description: '', deadline: '', priority: 'medium', category: 'general', time_required: 60 }); await fetchTasks();
     } catch (e) {
       alert(e?.response?.data?.message || 'Create failed');
@@ -75,28 +88,92 @@ export function TasksPage() {
     setCommentText(''); await fetchTasks();
   };
 
+  const onArchive = async (id) => { await api.patch(`/api/v1/tasks/${id}/archive`); await fetchTasks(); };
+  const onUnarchive = async (id) => { await api.patch(`/api/v1/tasks/${id}/unarchive`); await fetchTasks(); };
+
+  const onScheduleReminder = async (taskId, reminderTime) => {
+    await api.post(`/api/v1/tasks/${taskId}/reminder`, { reminderTime });
+    await fetchTasks();
+  };
+
+  const onParseNLP = async () => {
+    setNlpError(null); setNlpSuggestions(null);
+    if (!nlpText.trim()) return;
+    try {
+      const res = await api.post('/api/v1/tasks/nlp/parse', { text: nlpText });
+      const data = res.data.data;
+      setForm((f) => ({
+        ...f,
+        title: data.title || f.title,
+        description: data.description || f.description,
+        deadline: data.deadline ? dayjs(data.deadline).format('YYYY-MM-DDTHH:mm') : f.deadline,
+        priority: data.priority || f.priority,
+        category: data.category || f.category,
+        time_required: data.time_required || f.time_required,
+        natural_language_input: nlpText
+      }));
+      setNlpSuggestions(data.suggestions || null);
+    } catch (e) {
+      setNlpError(e?.response?.data?.message || 'Failed to parse');
+    }
+  };
+
   return (
     <Stack gap={2}>
+      <PageHeader
+        title="Tasks"
+        subtitle="Manage tasks, parse natural language, schedule reminders"
+        actions={
+          <Button startIcon={<AddIcon />} variant="contained" onClick={() => { setForm({ title: '', description: '', deadline: '', priority: 'medium', category: 'general', time_required: 60 }); setEditingId(null); setOpen(true); }}>New Task</Button>
+        }
+      />
       <Card>
         <CardContent>
           <Stack direction={{ xs: 'column', sm: 'row' }} gap={2} alignItems={{ sm: 'center' }}>
             <TextField label="Search" value={query} onChange={(e) => setQuery(e.target.value)} sx={{ flex: 1 }} />
             <TextField label="Category" value={category} onChange={(e) => setCategory(e.target.value)} sx={{ width: 200 }} />
-            <TextField select label="Sort" value={sort} onChange={(e) => setSort(e.target.value)} sx={{ width: 220 }}>
+             <TextField select label="Sort" value={sort} onChange={(e) => setSort(e.target.value)} sx={{ width: 220 }}>
               <MenuItem value="created">Created</MenuItem>
               <MenuItem value="deadline-asc">Deadline (asc)</MenuItem>
-              <MenuItem value="priority">Priority</MenuItem>
+               <MenuItem value="deadline-desc">Deadline (desc)</MenuItem>
               <MenuItem value="time">Time Required</MenuItem>
             </TextField>
             <TextField select label="Page size" value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))} sx={{ width: 160 }}>
               {[5,10,20,50].map(s => <MenuItem key={s} value={s}>{s}</MenuItem>)}
             </TextField>
-            <Button startIcon={<AddIcon />} variant="contained" onClick={() => { setForm({ title: '', description: '', deadline: '', priority: 'medium', category: 'general', time_required: 60 }); setEditingId(null); setOpen(true); }}>New Task</Button>
           </Stack>
         </CardContent>
       </Card>
 
+      <Card>
+        <CardContent>
+          <Typography variant="h6" fontWeight={700}>Quick add via Natural Language</Typography>
+          <Stack direction={{ xs: 'column', sm: 'row' }} gap={2} mt={1}>
+            <TextField
+              placeholder="e.g., Prepare quarterly report by Friday 2pm, high priority"
+              value={nlpText}
+              onChange={(e) => setNlpText(e.target.value)}
+              sx={{ flex: 1 }}
+            />
+            <Button variant="outlined" startIcon={<AutoModeIcon />} onClick={onParseNLP}>Parse</Button>
+          </Stack>
+          {nlpError && <Alert severity="error" sx={{ mt: 1 }}>{nlpError}</Alert>}
+          {nlpSuggestions && nlpSuggestions.length > 0 && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="subtitle2" color="text.secondary">Suggested time slots:</Typography>
+              <Stack direction={{ xs: 'column', sm: 'row' }} gap={1} mt={1}>
+                {nlpSuggestions.map((s, idx) => (
+                  <Chip key={idx} label={`${dayjs(s.start).format('MMM D, HH:mm')} → ${dayjs(s.end).format('HH:mm')}`} />
+                ))}
+              </Stack>
+            </Box>
+          )}
+        </CardContent>
+      </Card>
+
       {error && <Alert severity="error">{error}</Alert>}
+
+      {loading && <CenteredSpinner />}
 
       <Card>
         <CardContent>
@@ -113,7 +190,14 @@ export function TasksPage() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {tasks.map((t) => (
+              {!loading && visibleTasks.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={7} align="center">
+                    <Typography variant="body2" color="text.secondary">No tasks found. Try creating a new task.</Typography>
+                  </TableCell>
+                </TableRow>
+              )}
+              {visibleTasks.map((t) => (
                 <TableRow key={t._id} hover>
                   <TableCell>{t.title}</TableCell>
                   <TableCell>{t.description}</TableCell>
@@ -130,6 +214,24 @@ export function TasksPage() {
                         {t.status === 'completed' ? <UndoIcon /> : <CheckCircleIcon />}
                       </IconButton>
                     </Tooltip>
+                    <Tooltip title="Schedule reminder">
+                      <IconButton onClick={() => setReminderFor(t)}>
+                        <AlarmAddIcon />
+                      </IconButton>
+                    </Tooltip>
+                    {!t.archived ? (
+                      <Tooltip title="Archive">
+                        <IconButton onClick={() => onArchive(t._id)}>
+                          <ArchiveIcon />
+                        </IconButton>
+                      </Tooltip>
+                    ) : (
+                      <Tooltip title="Unarchive">
+                        <IconButton onClick={() => onUnarchive(t._id)}>
+                          <UnarchiveIcon />
+                        </IconButton>
+                      </Tooltip>
+                    )}
                     <Tooltip title="Delete"><IconButton onClick={() => onDelete(t._id)}><DeleteIcon /></IconButton></Tooltip>
                   </TableCell>
                 </TableRow>
@@ -159,6 +261,7 @@ export function TasksPage() {
             </TextField>
             <TextField label="Category" value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))} />
             <TextField type="number" label="Time required (min)" value={form.time_required} onChange={(e) => setForm((f) => ({ ...f, time_required: Number(e.target.value) }))} />
+            <TextField label="Natural language (optional)" value={form.natural_language_input || ''} onChange={(e) => setForm((f) => ({ ...f, natural_language_input: e.target.value }))} placeholder="Describe your task in natural language" />
           </Stack>
         </DialogContent>
         <DialogActions>
@@ -177,6 +280,13 @@ export function TasksPage() {
           </Stack>
         </CardContent>
       </Card>
+
+      <ReminderDialog
+        open={!!reminderFor}
+        onClose={() => setReminderFor(null)}
+        onSchedule={(time) => onScheduleReminder(reminderFor._id, time)}
+        defaultTime={reminderFor?.deadline ? dayjs(reminderFor.deadline).format('YYYY-MM-DDTHH:mm') : ''}
+      />
     </Stack>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../../shared/api/client';
 import { Alert, Box, Button, Card, CardContent, Stack, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography } from '@mui/material';
+import { PageHeader } from '../../../shared/components/PageHeader';
 
 export function RecurringTasksPage() {
   const [tasks, setTasks] = useState([]);
@@ -46,6 +47,7 @@ export function RecurringTasksPage() {
 
   return (
     <Stack gap={2}>
+      <PageHeader title="Recurring Tasks" subtitle="Create and manage task series" />
       <Card>
         <CardContent>
           <Typography variant="h6" fontWeight={700}>Create Recurring Task</Typography>

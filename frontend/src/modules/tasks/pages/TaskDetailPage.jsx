@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../../../shared/api/client';
-import { Alert, Box, Card, CardContent, Chip, Stack, Typography } from '@mui/material';
+import { Alert, Box, Card, CardContent, Chip, Stack, Typography, Button } from '@mui/material';
+import AlarmAddIcon from '@mui/icons-material/AlarmAdd';
+import { ReminderDialog } from '../../../shared/components/ReminderDialog';
 import dayjs from 'dayjs';
 
 export function TaskDetailPage() {
   const { taskId } = useParams();
   const [task, setTask] = useState(null);
   const [error, setError] = useState(null);
+  const [reminderOpen, setReminderOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -36,9 +39,18 @@ export function TaskDetailPage() {
               <Chip label={`Category: ${task.category}`} />
               <Chip label={`Deadline: ${task.deadline ? dayjs(task.deadline).format('YYYY-MM-DD HH:mm') : '-'}`} />
             </Stack>
+            <Stack direction="row" gap={1} mt={1}>
+              <Button size="small" variant="outlined" startIcon={<AlarmAddIcon />} onClick={() => setReminderOpen(true)}>Schedule reminder</Button>
+            </Stack>
           </Stack>
         </CardContent>
       </Card>
+      <ReminderDialog
+        open={reminderOpen}
+        onClose={() => setReminderOpen(false)}
+        onSchedule={async (time) => { await api.post(`/api/v1/tasks/${taskId}/reminder`, { reminderTime: time }); setReminderOpen(false); }}
+        defaultTime={task.deadline ? dayjs(task.deadline).format('YYYY-MM-DDTHH:mm') : ''}
+      />
     </Box>
   );
 }

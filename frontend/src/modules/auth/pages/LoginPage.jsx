@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Alert, Box, Button, Card, CardContent, Stack, TextField, Typography } from '@mui/material';
 import { useState } from 'react';
 import { useAuth } from '../AuthProvider';
+import { PageHeader } from '../../../shared/components/PageHeader';
 
 const schema = z.object({
   username: z.string().min(1, 'Username or Email is required').optional(),
@@ -27,10 +28,10 @@ export function LoginPage() {
 
   return (
     <Box maxWidth={420} mx="auto" mt={8}>
+      <PageHeader title="Welcome back" />
       <Card>
         <CardContent>
           <Stack gap={2}>
-            <Typography variant="h5" fontWeight={700}>Welcome back</Typography>
             {error && <Alert severity="error">{error}</Alert>}
             <TextField label="Username" {...register('username')} error={!!errors.username} helperText={errors.username?.message} />
             <TextField label="Email" {...register('email')} error={!!errors.email} helperText={errors.email?.message} />

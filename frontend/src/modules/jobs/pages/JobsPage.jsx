@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../../shared/api/client';
 import { Alert, Box, Button, Card, CardContent, Stack, Typography } from '@mui/material';
+import { PageHeader } from '../../../shared/components/PageHeader';
 
 export function JobsPage() {
   const [stats, setStats] = useState(null);
@@ -25,13 +26,11 @@ export function JobsPage() {
 
   return (
     <Stack gap={2}>
+      <PageHeader title="Jobs" subtitle="Reminder stats and deadline checks" actions={<Button onClick={loadStats}>Refresh stats</Button>} />
       {error && <Alert severity="error">{error}</Alert>}
       <Card>
         <CardContent>
-          <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ sm: 'center' }}>
-            <Typography variant="h6" fontWeight={700}>Reminder Stats</Typography>
-            <Button onClick={loadStats}>Refresh</Button>
-          </Stack>
+          <Typography variant="h6" fontWeight={700}>Reminder Stats</Typography>
           {stats && <pre style={{ background: '#0b1020', color: '#90ee90', padding: 12, borderRadius: 8, overflowX: 'auto' }}>{JSON.stringify(stats, null, 2)}</pre>}
         </CardContent>
       </Card>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Alert, Box, Button, Card, CardContent, Stack, TextField, Typography } from '@mui/material';
 import { useAuth } from '../AuthProvider';
 import { api } from '../../../shared/api/client';
+import { PageHeader } from '../../../shared/components/PageHeader';
 
 export function ProfilePage() {
   const { user } = useAuth();
@@ -9,6 +10,7 @@ export function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const handleChange = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
@@ -24,11 +26,24 @@ export function ProfilePage() {
     }
   };
 
+  const onDeleteAccount = async () => {
+    if (!confirm('This will permanently delete your account. Continue?')) return;
+    setDeleting(true); setError(null);
+    try {
+      await api.delete('/api/v1/auth/delete');
+      window.location.href = '/register';
+    } catch (e) {
+      setError(e?.response?.data?.message || 'Delete failed');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <Box maxWidth={560} mx="auto" mt={4}>
+      <PageHeader title="Profile" subtitle="Update account details" />
       <Card>
         <CardContent>
-          <Typography variant="h6" fontWeight={700} mb={2}>Profile</Typography>
           <Stack gap={2}>
             {error && <Alert severity="error">{error}</Alert>}
             {success && <Alert severity="success">{success}</Alert>}
@@ -37,6 +52,10 @@ export function ProfilePage() {
             <TextField name="fullname" label="Full name" value={form.fullname} onChange={handleChange} />
             <TextField name="profile_picture" label="Profile picture URL" value={form.profile_picture} onChange={handleChange} />
             <Button variant="contained" onClick={onSave} disabled={saving}>Save</Button>
+            <Box mt={2}>
+              <Typography variant="subtitle2" color="error" gutterBottom>Danger zone</Typography>
+              <Button color="error" variant="outlined" onClick={onDeleteAccount} disabled={deleting}>Delete account</Button>
+            </Box>
           </Stack>
         </CardContent>
       </Card>

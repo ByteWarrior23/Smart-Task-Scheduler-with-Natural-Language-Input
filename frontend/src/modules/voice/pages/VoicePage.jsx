@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Alert, Box, Button, Card, CardContent, Stack, Typography } from '@mui/material';
+import { PageHeader } from '../../../shared/components/PageHeader';
 import { api } from '../../../shared/api/client';
 
 export function VoicePage() {
@@ -22,10 +23,10 @@ export function VoicePage() {
 
   return (
     <Box>
+      <PageHeader title="Voice Assistant" subtitle="Transcribe, parse, and create tasks from audio" />
       <Card>
         <CardContent>
           <Stack gap={2}>
-            <Typography variant="h6" fontWeight={700}>Voice Assistant</Typography>
             {error && <Alert severity="error">{error}</Alert>}
             <input type="file" accept="audio/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
             <Stack direction={{ xs: 'column', sm: 'row' }} gap={2}>

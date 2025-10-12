@@ -1,13 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
+import { AppThemeProvider } from './shared/theme/ThemeProvider';
 import App from './modules/app/App';
-
-const theme = createTheme({
-  palette: { mode: 'light' },
-});
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,13 +20,12 @@ const queryClient = new QueryClient({
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
+    <AppThemeProvider>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <App />
         </BrowserRouter>
       </QueryClientProvider>
-    </ThemeProvider>
+    </AppThemeProvider>
   </React.StrictMode>
 );

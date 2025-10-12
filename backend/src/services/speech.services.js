@@ -1,4 +1,5 @@
-import { Wit } from 'node-wit';
+import pkg from 'node-wit';
+const { Wit } = pkg;
 import dotenv from 'dotenv';
 
 // Load .env variables
