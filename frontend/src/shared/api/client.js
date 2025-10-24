@@ -65,7 +65,12 @@ api.interceptors.response.use(
       original._retry = true;
       isRefreshing = true;
       try {
-        const res = await axios.post('/api/v1/auth/refresh', { refreshToken: getAuthTokens()?.refreshToken });
+        const tokens = getAuthTokens();
+        if (!tokens?.refreshToken) {
+          // No refresh token available, clear auth and reject
+          throw new Error('No refresh token available');
+        }
+        const res = await axios.post('/api/v1/auth/refresh', { refreshToken: tokens.refreshToken });
         const { accessToken, refreshToken } = res.data.data;
         setAuthTokens({ accessToken, refreshToken });
         onRefreshed(accessToken);
