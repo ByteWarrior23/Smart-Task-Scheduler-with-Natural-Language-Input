@@ -87,13 +87,21 @@ const loginUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Password is required");
   }
 
-  const normalizedUsername = username?.trim();
-  const normalizedEmail = email?.trim().toLowerCase();
+  const normalizedUsername = typeof username === 'string' ? username.trim() : undefined;
+  const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : undefined;
 
-  // Build query only with provided fields
+  // Build query to support either username or email in a single field
   const query = [];
-  if (normalizedUsername) query.push({ username: normalizedUsername });
-  if (normalizedEmail) query.push({ email: normalizedEmail });
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (normalizedUsername) {
+    query.push({ username: normalizedUsername });
+    if (emailRegex.test(normalizedUsername)) {
+      query.push({ email: normalizedUsername.toLowerCase() });
+    }
+  }
+  if (normalizedEmail) {
+    query.push({ email: normalizedEmail });
+  }
 
   const user = await User.findOne({ $or: query });
   if (!user) {
