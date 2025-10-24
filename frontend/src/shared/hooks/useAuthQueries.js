@@ -12,10 +12,10 @@ export const useAuthQueries = () => {
         return response.data;
       },
       onSuccess: (data) => {
-        // Store tokens
-        localStorage.setItem('accessToken', data.accessToken);
-        localStorage.setItem('refreshToken', data.refreshToken);
-        queryClient.setQueryData(['user'], data.safeUser);
+        // Store tokens using correct keys
+        localStorage.setItem('tm_access_token', data.data.accessToken);
+        localStorage.setItem('tm_refresh_token', data.data.refreshToken);
+        queryClient.setQueryData(['user'], data.data.safeUser);
       },
     });
   };
@@ -32,14 +32,14 @@ export const useAuthQueries = () => {
   const useLogout = () => {
     return useMutation({
       mutationFn: async () => {
-        const refreshToken = localStorage.getItem('refreshToken');
+        const refreshToken = localStorage.getItem('tm_refresh_token');
         if (refreshToken) {
           await authApi.logout();
         }
       },
       onSuccess: () => {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('tm_access_token');
+        localStorage.removeItem('tm_refresh_token');
         queryClient.clear();
       },
     });
@@ -50,22 +50,22 @@ export const useAuthQueries = () => {
       queryKey: ['user'],
       queryFn: async () => {
         const response = await authApi.getMe();
-        return response.data;
+        return response.data.data;
       },
-      enabled: !!localStorage.getItem('accessToken'),
+      enabled: !!localStorage.getItem('tm_access_token'),
     });
   };
 
   const useRefreshToken = () => {
     return useMutation({
       mutationFn: async () => {
-        const refreshToken = localStorage.getItem('refreshToken');
+        const refreshToken = localStorage.getItem('tm_refresh_token');
         const response = await authApi.refresh(refreshToken);
         return response.data;
       },
       onSuccess: (data) => {
-        localStorage.setItem('accessToken', data.accessToken);
-        localStorage.setItem('refreshToken', data.refreshToken);
+        localStorage.setItem('tm_access_token', data.data.accessToken);
+        localStorage.setItem('tm_refresh_token', data.data.refreshToken);
       },
     });
   };

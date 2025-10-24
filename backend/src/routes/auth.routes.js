@@ -13,6 +13,12 @@ import {
   forgotPassword,
   resetPassword
 } from "../controllers/user.controller.js";
+import {
+  githubAuth,
+  githubCallback,
+  googleAuth,
+  googleCallback
+} from "../controllers/oauth.controller.js";
 
 const router = Router();
 
@@ -22,6 +28,12 @@ router.post("/login", loginUser);
 router.post("/refresh", refreshSession);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
+
+// OAuth Routes
+router.get("/github", githubAuth);
+router.get("/github/callback", githubCallback);
+router.get("/google", googleAuth);
+router.get("/google/callback", googleCallback);
 
 // Protected
 router.post("/logout", verifyJWT, logoutUser);

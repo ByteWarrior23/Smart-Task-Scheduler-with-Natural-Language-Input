@@ -13,7 +13,7 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const initAuth = async () => {
-      const token = localStorage.getItem('accessToken');
+      const token = localStorage.getItem('tm_access_token');
       if (token) {
         try {
           // Try to get user data
@@ -26,8 +26,8 @@ export const AuthProvider = ({ children }) => {
             await refreshTokenMutation.mutateAsync();
           } catch (refreshError) {
             // Refresh failed, clear auth
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('tm_access_token');
+            localStorage.removeItem('tm_refresh_token');
             setUser(null);
           }
         }
@@ -44,8 +44,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('tm_access_token');
+    localStorage.removeItem('tm_refresh_token');
     setUser(null);
   };
 
