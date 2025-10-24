@@ -89,10 +89,8 @@ const UserSchema = new Schema(
     }
 )
 
-// Indexes for better performance
-UserSchema.index({ email: 1 });
-UserSchema.index({ username: 1 });
-UserSchema.index({ refreshToken: 1 });
+// Indexes are automatically created from schema definitions with unique: true and index: true
+// No need to explicitly define them here to avoid duplicate index warnings
 
 // Compare password
 UserSchema.methods.isPasswordCorrect = async function (password) {
