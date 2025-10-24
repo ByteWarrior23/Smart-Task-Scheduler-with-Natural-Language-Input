@@ -8,7 +8,21 @@ export const useAuthQueries = () => {
   const useLogin = () => {
     return useMutation({
       mutationFn: async (credentials) => {
-        const response = await authApi.login(credentials);
+        // Support single "Username or Email" input: detect and map accordingly
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const rawIdentifier = (credentials.username ?? credentials.email ?? '').trim();
+
+        const payload = { password: credentials.password };
+        if (credentials.email || emailRegex.test(rawIdentifier)) {
+          payload.email = (credentials.email ?? rawIdentifier).toLowerCase();
+        } else if (credentials.username) {
+          payload.username = rawIdentifier;
+        } else if (rawIdentifier) {
+          // Fallback if consumer provided only a generic field
+          payload.username = rawIdentifier;
+        }
+
+        const response = await authApi.login(payload);
         return response.data;
       },
       onSuccess: (data) => {

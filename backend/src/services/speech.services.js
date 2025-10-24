@@ -8,12 +8,20 @@ dotenv.config();
 // Access the API key
 const WIT_API_KEY = process.env.WIT_API_KEY;
 
-// Initialize Wit client
-const client = new Wit({ accessToken: WIT_API_KEY });
+// Initialize Wit client only if key is present
+let client = null;
+if (WIT_API_KEY) {
+  try {
+    client = new Wit({ accessToken: WIT_API_KEY });
+  } catch (error) {
+    // Fallback to mock mode if initialization fails
+    client = null;
+  }
+}
 
 export const transcribeAudio = async (audioBuffer) => {
   try {
-    if (!WIT_API_KEY) {
+    if (!WIT_API_KEY || !client) {
       console.log('Wit.ai API key not set, using mock transcription');
       await new Promise(resolve => setTimeout(resolve, 1000));
       return "Create a task to buy groceries tomorrow at 10 am for 30 minutes";
