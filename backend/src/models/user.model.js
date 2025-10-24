@@ -19,9 +19,22 @@ const UserSchema = new Schema(
         },
         password : {
             type : String , 
-            required : true,
+            required : false, // Not required for OAuth users
             trim : true,
             minLength : 8,
+        },
+        authProvider : {
+            type : String,
+            enum : ['local', 'github', 'google'],
+            default : 'local'
+        },
+        githubId : {
+            type : String,
+            default : null
+        },
+        googleId : {
+            type : String,
+            default : null
         },
         email : {
             type : String ,
