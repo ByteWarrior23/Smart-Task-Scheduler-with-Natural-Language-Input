@@ -193,9 +193,9 @@ export const TaskForm = ({
                     {Object.values(TaskPriority).map(priority => (
                       <MenuItem key={priority} value={priority}>
                         <Box display="flex" alignItems="center" gap={1}>
-                          <span>{priority === TaskPriority.LOW ? '🟢' : 
-                                 priority === TaskPriority.MEDIUM ? '🟡' :
-                                 priority === TaskPriority.HIGH ? '🟠' : '🔴'}</span>
+                          <span>{priority === TaskPriority.LOW ? 'L' : 
+                                 priority === TaskPriority.MEDIUM ? 'M' :
+                                 priority === TaskPriority.HIGH ? 'H' : 'U'}</span>
                           {priority}
                         </Box>
                       </MenuItem>

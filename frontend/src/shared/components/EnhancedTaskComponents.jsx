@@ -37,25 +37,25 @@ const priorityConfig = {
   [TaskPriority.LOW]: {
     color: '#10b981',
     gradient: 'linear-gradient(135deg, #10b981, #34d399)',
-    icon: '🟢',
+    icon: 'L',
     label: 'Low',
   },
   [TaskPriority.MEDIUM]: {
     color: '#f59e0b',
     gradient: 'linear-gradient(135deg, #f59e0b, #fbbf24)',
-    icon: '🟡',
+    icon: 'M',
     label: 'Medium',
   },
   [TaskPriority.HIGH]: {
     color: '#ef4444',
     gradient: 'linear-gradient(135deg, #ef4444, #f87171)',
-    icon: '🟠',
+    icon: 'H',
     label: 'High',
   },
   [TaskPriority.URGENT]: {
     color: '#dc2626',
     gradient: 'linear-gradient(135deg, #dc2626, #ef4444)',
-    icon: '🔴',
+    icon: 'U',
     label: 'Urgent',
   },
 };
@@ -101,15 +101,15 @@ export const TaskCard = ({
     const date = new Date(deadline);
     
     if (isPast(date)) {
-      return { text: 'Overdue', color: '#ef4444', icon: '⚠️', urgent: true };
+      return { text: 'Overdue', color: '#ef4444', icon: '!', urgent: true };
     } else if (isToday(date)) {
-      return { text: 'Today', color: '#f59e0b', icon: '🔥', urgent: true };
+      return { text: 'Today', color: '#f59e0b', icon: '•', urgent: true };
     } else if (isTomorrow(date)) {
-      return { text: 'Tomorrow', color: '#3b82f6', icon: '📅', urgent: false };
+      return { text: 'Tomorrow', color: '#3b82f6', icon: '→', urgent: false };
     } else if (isThisWeek(date)) {
-      return { text: format(date, 'EEEE'), color: '#6366f1', icon: '📆', urgent: false };
+      return { text: format(date, 'EEEE'), color: '#6366f1', icon: '>', urgent: false };
     } else {
-      return { text: format(date, 'MMM dd'), color: '#64748b', icon: '📅', urgent: false };
+      return { text: format(date, 'MMM dd'), color: '#64748b', icon: '>', urgent: false };
     }
   };
 
@@ -272,7 +272,7 @@ export const TaskCard = ({
             {task.recurring && (
               <Chip
                 size="small"
-                label="🔄 Recurring"
+                label="Recurring"
                 sx={{
                   background: 'linear-gradient(135deg, #f59e0b, #fbbf24)',
                   color: 'white',
@@ -284,7 +284,7 @@ export const TaskCard = ({
             {task.auto_categorized && (
               <Chip
                 size="small"
-                label="🤖 AI"
+                label="AI"
                 sx={{
                   background: 'linear-gradient(135deg, #8b5cf6, #a78bfa)',
                   color: 'white',
@@ -621,7 +621,7 @@ export const TaskList = ({
             }}
           >
             <Typography variant="h1" sx={{ fontSize: '4rem', mb: 2 }}>
-              📝
+              Note
             </Typography>
           </motion.div>
           <Typography 
@@ -704,7 +704,7 @@ export const TaskStats = ({ stats, loading = false }) => {
       value: stats?.total || 0, 
       color: '#6366f1',
       gradient: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-      icon: '📊',
+      icon: 'Stats',
       change: stats?.totalChange || 0,
     },
     { 
@@ -712,7 +712,7 @@ export const TaskStats = ({ stats, loading = false }) => {
       value: stats?.completed || 0, 
       color: '#10b981',
       gradient: 'linear-gradient(135deg, #10b981, #34d399)',
-      icon: '✅',
+      icon: 'Done',
       change: stats?.completedChange || 0,
     },
     { 
@@ -728,7 +728,7 @@ export const TaskStats = ({ stats, loading = false }) => {
       value: stats?.overdue || 0, 
       color: '#ef4444',
       gradient: 'linear-gradient(135deg, #ef4444, #f87171)',
-      icon: '⚠️',
+      icon: '!',
       change: stats?.overdueChange || 0,
     },
   ];

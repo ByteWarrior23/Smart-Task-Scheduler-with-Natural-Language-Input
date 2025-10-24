@@ -143,9 +143,9 @@ export const TaskFilters = ({
               {Object.values(TaskPriority).map(priority => (
                 <MenuItem key={priority} value={priority}>
                   <Box display="flex" alignItems="center" gap={1}>
-                    <span>{priority === TaskPriority.LOW ? '🟢' : 
-                           priority === TaskPriority.MEDIUM ? '🟡' :
-                           priority === TaskPriority.HIGH ? '🟠' : '🔴'}</span>
+                    <span>{priority === TaskPriority.LOW ? 'L' : 
+                           priority === TaskPriority.MEDIUM ? 'M' :
+                           priority === TaskPriority.HIGH ? 'H' : 'U'}</span>
                     {priority}
                   </Box>
                 </MenuItem>
@@ -347,11 +347,11 @@ export const TaskFilters = ({
 // Quick filter chips
 export const QuickFilters = ({ onFilterSelect, activeFilters = {} }) => {
   const quickFilters = [
-    { key: 'urgent', label: 'Urgent', icon: '🔴', color: 'error' },
-    { key: 'today', label: 'Due Today', icon: '📅', color: 'warning' },
-    { key: 'overdue', label: 'Overdue', icon: '⚠️', color: 'error' },
-    { key: 'completed', label: 'Completed', icon: '✅', color: 'success' },
-    { key: 'recurring', label: 'Recurring', icon: '🔄', color: 'info' },
+    { key: 'urgent', label: 'Urgent', icon: '!', color: 'error' },
+    { key: 'today', label: 'Due Today', icon: '→', color: 'warning' },
+    { key: 'overdue', label: 'Overdue', icon: '!', color: 'error' },
+    { key: 'completed', label: 'Completed', icon: '√', color: 'success' },
+    { key: 'recurring', label: 'Recurring', icon: '↻', color: 'info' },
   ];
 
   return (

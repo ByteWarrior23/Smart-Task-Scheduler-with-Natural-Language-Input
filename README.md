@@ -1,452 +1,215 @@
-# Smart Task Scheduler
+# TaskMaster - Smart Task Scheduling Application
 
-A comprehensive task management application with natural language processing, voice input, and intelligent scheduling features.
+A full-stack task management application with AI-powered natural language processing, voice input, and intelligent scheduling.
 
-## 🚀 Features
+## Tech Stack
 
-### Core Functionality
-- **Task Management**: Create, edit, delete, and organize tasks
-- **Natural Language Processing**: Create tasks using natural language input
-- **Voice Input**: Record voice notes and convert them to tasks
-- **Smart Scheduling**: AI-powered conflict detection and time slot suggestions
-- **Recurring Tasks**: Support for complex recurring patterns using RRULE
-- **Priority Management**: Four-level priority system (low, medium, high, urgent)
-- **Category Organization**: Organize tasks by categories
-- **Comments System**: Add comments and notes to tasks
-- **Archive System**: Archive completed or old tasks
+### Backend
+- Node.js with Express
+- MongoDB (Mongoose)
+- JWT Authentication
+- Natural Language Processing (Wit.ai, Chrono-node)
+- OAuth (GitHub, Google)
 
-### Advanced Features
-- **Email Notifications**: Automated reminder emails for deadlines
-- **Background Jobs**: Cron-based scheduling for reminders and cleanup
-- **Analytics Dashboard**: Task completion statistics and insights
-- **Admin Panel**: User management and system monitoring
-- **Job Monitoring**: Real-time background job status and management
-- **Export/Import**: Backup and restore task data
-- **Bulk Operations**: Perform actions on multiple tasks
-- **Search & Filtering**: Advanced search and filtering capabilities
-- **Responsive Design**: Works on desktop, tablet, and mobile devices
+### Frontend
+- React 18
+- Material-UI (MUI)
+- React Query (TanStack Query)
+- React Router v6
+- Framer Motion
 
-### Technical Features
-- **JWT Authentication**: Secure authentication with refresh tokens
-- **Role-Based Access**: User and admin roles with different permissions
-- **Real-time Updates**: Live updates for task changes
-- **File Upload**: Audio file processing for voice input
-- **API Documentation**: Comprehensive REST API
-- **Error Handling**: Robust error handling and user feedback
-- **Performance Optimization**: Efficient database queries and caching
-- **Security**: Input validation, XSS protection, and secure headers
+## Prerequisites
 
-## 🏗️ Architecture
+- Node.js (v18 or higher)
+- MongoDB Atlas account or local MongoDB instance
+- npm or yarn package manager
 
-### Backend (Node.js + Express)
-- **Framework**: Express.js with ES6 modules
-- **Database**: MongoDB with Mongoose ODM
-- **Authentication**: JWT with refresh token rotation
-- **File Processing**: Multer for audio file uploads
-- **NLP Processing**: Natural.js for text analysis
-- **Email Service**: Nodemailer for email notifications
-- **Scheduling**: Node-cron for background jobs
-- **Speech Processing**: Microsoft Speech SDK integration
-- **Date Processing**: Chrono-node for natural language date parsing
-- **Recurrence**: RRule for complex recurring patterns
+## Installation
 
-### Frontend (React + Vite)
-- **Framework**: React 18 with Vite build tool
-- **UI Library**: Material-UI (MUI) with custom theming
-- **State Management**: TanStack Query (React Query) for server state
-- **Routing**: React Router for navigation
-- **Forms**: React Hook Form with Zod validation
-- **Charts**: Recharts for analytics visualization
-- **Date Handling**: Day.js for date manipulation
-- **Animations**: Framer Motion for smooth transitions
-- **Testing**: Vitest for unit tests, Playwright for E2E tests
-
-## 📋 Prerequisites
-
-- **Node.js**: Version 18 or higher
-- **MongoDB**: Version 6.0 or higher
-- **npm**: Version 8 or higher
-- **Git**: For version control
-
-### Optional (for advanced features)
-- **Email Service**: Gmail, Outlook, or custom SMTP server
-- **Microsoft Speech Service**: For voice processing
-- **Wit.ai API**: For enhanced NLP processing
-
-## 🛠️ Installation
-
-### 1. Clone the Repository
+### 1. Clone the repository
 ```bash
-git clone https://github.com/your-username/smart-task-scheduler.git
-cd smart-task-scheduler
+git clone <repository-url>
+cd scheduling_project
 ```
 
 ### 2. Backend Setup
+
 ```bash
 cd backend
-
-# Install dependencies
 npm install
+```
 
-# Create environment file
-cp .env.sample .env
+Create a `.env` file in the backend directory with the following variables:
 
-# Edit .env file with your configuration
-nano .env
+```env
+PORT=3001
+JWT_ACCESS_TOKEN=your_access_token_secret
+JWT_REFRESH_TOKEN=your_refresh_token_secret
+MONGODB_URL=your_mongodb_connection_string
+ACCESS_TOKEN_EXPIRES_IN=15m
+REFRESH_TOKEN_EXPIRES_IN=7d
+WIT_API_KEY=your_wit_api_key
+JWT_ACCESS_TOKEN_SECRET=your_access_token_secret
+JWT_REFRESH_TOKEN_SECRET=your_refresh_token_secret
+NODE_ENV=development
+FRONTEND_URL=http://localhost:5173
 ```
 
 ### 3. Frontend Setup
-```bash
-cd ../frontend
 
-# Install dependencies
+```bash
+cd frontend
 npm install
 ```
 
-### 4. Database Setup
+## Running the Application
+
+### Method 1: Using provided scripts
+
+#### On Windows:
 ```bash
-# Start MongoDB (if not running as a service)
-mongod
-
-# Or use MongoDB Atlas (cloud database)
-# Update MONGODB_URL in backend/.env with your Atlas connection string
+start.bat
 ```
 
-## ⚙️ Configuration
-
-### Backend Environment Variables
-
-Create a `.env` file in the `backend` directory:
-
-```env
-# Database Configuration
-MONGODB_URL=mongodb://localhost:27017/scheduling_project
-
-# JWT Configuration
-JWT_ACCESS_TOKEN_SECRET=your_super_secret_access_token_key_here_make_it_long_and_secure
-JWT_REFRESH_TOKEN_SECRET=your_super_secret_refresh_token_key_here_make_it_long_and_secure
-ACCESS_TOKEN_EXPIRES_IN=15m
-REFRESH_TOKEN_EXPIRES_IN=7d
-
-# Server Configuration
-PORT=3000
-NODE_ENV=development
-
-# Email Configuration (Optional)
-EMAIL_USER=your_email@gmail.com
-EMAIL_PASS=your_app_password_here
-
-# AI Services (Optional)
-WIT_API_KEY=your_wit_ai_api_key
-MICROSOFT_SPEECH_KEY=your_microsoft_speech_key
-MICROSOFT_SPEECH_REGION=your_microsoft_speech_region
+#### On Linux/Mac:
+```bash
+chmod +x start.sh
+./start.sh
 ```
 
-### Frontend Configuration
+### Method 2: Manual start
 
-The frontend automatically connects to the backend API. No additional configuration is required for basic functionality.
-
-## 🚀 Running the Application
-
-### Development Mode
-
-#### Backend
+#### Terminal 1 - Backend:
 ```bash
 cd backend
-npm run dev
+npm start
 ```
 
-#### Frontend
+#### Terminal 2 - Frontend:
 ```bash
 cd frontend
 npm run dev
 ```
 
-The application will be available at:
-- **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:3000
+### Method 3: Development mode with auto-reload
 
-### Production Mode
-
-#### Using Docker
+#### Terminal 1 - Backend:
 ```bash
-# Build and run with Docker
-docker build -t scheduling-project .
-docker run -p 3000:3000 -p 5173:5173 scheduling-project
-```
-
-#### Using Deployment Script
-```bash
-# Deploy locally
-./deploy.sh local
-
-# Deploy to various platforms
-./deploy.sh aws
-./deploy.sh gcp
-./deploy.sh heroku
-./deploy.sh railway
-```
-
-## 🧪 Testing
-
-### Unit Tests
-```bash
-# Backend tests
 cd backend
-npm test
-
-# Frontend tests
-cd frontend
-npm test
+npm run dev
 ```
 
-### E2E Tests
+#### Terminal 2 - Frontend:
 ```bash
 cd frontend
-npm run e2e
+npm run dev
 ```
 
-### Test Coverage
-```bash
-cd frontend
-npm run test:coverage
-```
+## Accessing the Application
 
-## 📚 API Documentation
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:3001/api/v1
 
-### Authentication Endpoints
-- `POST /api/v1/auth/register` - User registration
+## Features
+
+- User authentication (local and OAuth)
+- Task management with CRUD operations
+- Natural language task input
+- Voice-to-text task creation
+- Priority levels and recurring tasks
+- Task statistics and analytics
+- Email reminders
+- Responsive design
+
+## API Endpoints
+
+### Authentication
+- `POST /api/v1/auth/register` - Register new user
 - `POST /api/v1/auth/login` - User login
-- `POST /api/v1/auth/refresh` - Refresh tokens
 - `POST /api/v1/auth/logout` - User logout
-- `GET /api/v1/auth/me` - Get user profile
-- `PATCH /api/v1/auth/update` - Update user details
-- `PATCH /api/v1/auth/email-config` - Update email config
-- `PATCH /api/v1/auth/change-password` - Change password
-- `DELETE /api/v1/auth/delete` - Delete user
+- `POST /api/v1/auth/refresh` - Refresh access token
+- `GET /api/v1/auth/me` - Get current user
 
-### Task Endpoints
-- `POST /api/v1/tasks/` - Create task
-- `GET /api/v1/tasks/` - Get all tasks
-- `GET /api/v1/tasks/:taskId` - Get specific task
-- `PATCH /api/v1/tasks/:taskId` - Update task
-- `DELETE /api/v1/tasks/:taskId` - Delete task
-- `POST /api/v1/tasks/nlp/parse` - Parse natural language
-- `POST /api/v1/tasks/recurring` - Create recurring task
-- `GET /api/v1/tasks/reminders/stats` - Get reminder stats
-- `POST /api/v1/tasks/reminders/check` - Check deadlines
+### Tasks
+- `GET /api/v1/tasks` - Get all tasks
+- `POST /api/v1/tasks` - Create new task
+- `GET /api/v1/tasks/:id` - Get task by ID
+- `PATCH /api/v1/tasks/:id` - Update task
+- `DELETE /api/v1/tasks/:id` - Delete task
 
-### Voice Endpoints
-- `POST /api/v1/voice/transcribe` - Transcribe audio to text
-- `POST /api/v1/voice/parse` - Parse voice input into task data
-- `POST /api/v1/voice/create-task` - Create task from voice input
+### Voice
+- `POST /api/v1/voice/upload` - Upload voice file for transcription
+- `POST /api/v1/voice/process` - Process voice input to task
 
-## 🎯 Usage Examples
+## Project Structure
 
-### Creating Tasks with Natural Language
-```
-"Meeting with John tomorrow at 3pm for 1 hour urgent work"
-"Call dentist next Monday at 2pm for 30 minutes"
-"Review project proposal by Friday high priority"
-"Daily standup meeting every weekday at 9am"
-```
-
-### Voice Input Examples
-- Record voice notes and convert them to structured tasks
-- Use voice commands for quick task creation
-- Process audio files for batch task creation
-
-### Recurring Task Patterns
-- Daily: `FREQ=DAILY`
-- Weekly: `FREQ=WEEKLY;BYDAY=MO,WE,FR`
-- Monthly: `FREQ=MONTHLY;BYMONTHDAY=1`
-- Custom: Complex RRULE patterns
-
-## 🔧 Development
-
-### Project Structure
 ```
 scheduling_project/
 ├── backend/
 │   ├── src/
-│   │   ├── controllers/     # API controllers
-│   │   ├── models/         # Database models
-│   │   ├── routes/         # API routes
-│   │   ├── services/       # Business logic
-│   │   ├── middlewares/    # Express middlewares
-│   │   └── utils/          # Utility functions
-│   ├── uploads/            # File uploads
+│   │   ├── controllers/     # Request handlers
+│   │   ├── models/          # Database models
+│   │   ├── routes/          # API routes
+│   │   ├── middlewares/     # Custom middlewares
+│   │   ├── services/        # Business logic
+│   │   ├── utils/           # Utility functions
+│   │   ├── db/              # Database configuration
+│   │   ├── app.js           # Express app setup
+│   │   └── server.js        # Server entry point
+│   ├── .env                 # Environment variables
 │   └── package.json
 ├── frontend/
 │   ├── src/
-│   │   ├── modules/        # Feature modules
-│   │   ├── shared/         # Shared components
-│   │   └── main.jsx        # Entry point
+│   │   ├── modules/         # Feature modules
+│   │   ├── shared/          # Shared components
+│   │   ├── App.jsx          # Main app component
+│   │   └── main.jsx         # Entry point
 │   └── package.json
-├── .github/
-│   └── workflows/          # CI/CD pipelines
-├── tests-e2e/             # E2E tests
 └── README.md
 ```
 
-### Adding New Features
+## Troubleshooting
 
-1. **Backend**: Add new routes, controllers, and services
-2. **Frontend**: Create new components and pages
-3. **Database**: Update models and migrations
-4. **Tests**: Add unit and E2E tests
-5. **Documentation**: Update API docs and README
+### Port already in use
+If you get an error that port 3001 or 5173 is already in use:
 
-### Code Style
-- **Backend**: ESLint + Prettier
-- **Frontend**: ESLint + Prettier
-- **Commits**: Conventional Commits format
-- **Branches**: GitFlow branching model
+```bash
+# On Windows
+netstat -ano | findstr :3001
+taskkill /PID <PID> /F
 
-## 🚀 Deployment
-
-### Supported Platforms
-- **AWS ECS**: Container-based deployment
-- **Google Cloud Run**: Serverless containers
-- **Heroku**: Platform-as-a-Service
-- **Railway**: Modern deployment platform
-- **Render**: Cloud platform for web services
-- **DigitalOcean App Platform**: Managed applications
-- **Docker**: Containerized deployment
-
-### Environment Variables for Production
-```env
-NODE_ENV=production
-MONGODB_URL=your_production_mongodb_url
-JWT_ACCESS_TOKEN_SECRET=your_production_jwt_secret
-JWT_REFRESH_TOKEN_SECRET=your_production_refresh_secret
-EMAIL_USER=your_production_email
-EMAIL_PASS=your_production_email_password
+# On Linux/Mac
+lsof -ti:3001 | xargs kill -9
 ```
 
-### CI/CD Pipeline
-The project includes GitHub Actions workflows for:
-- Automated testing
-- Security scanning
-- Docker image building
-- Multi-platform deployment
-- Performance monitoring
+### Database connection issues
+- Verify your MongoDB connection string in `.env`
+- Check if your IP is whitelisted in MongoDB Atlas
+- Ensure MongoDB service is running (if using local MongoDB)
 
-## 🔒 Security
+### Frontend proxy errors
+- Make sure backend is running before starting frontend
+- Check that PORT in backend/.env matches the proxy target in frontend/vite.config.js
 
-### Authentication
-- JWT tokens with short expiration
-- Refresh token rotation
-- Password hashing with bcrypt
-- Input validation and sanitization
+## Environment Variables
 
-### API Security
-- CORS configuration
-- Rate limiting
-- XSS protection headers
-- SQL injection prevention
-- File upload validation
+### Required Backend Variables
+- `PORT` - Server port (default: 3001)
+- `MONGODB_URL` - MongoDB connection string
+- `JWT_ACCESS_TOKEN` - Secret for access tokens
+- `JWT_REFRESH_TOKEN` - Secret for refresh tokens
 
-### Data Protection
-- Environment variable encryption
-- Secure cookie settings
-- HTTPS enforcement
-- Database connection security
+### Optional Backend Variables
+- `WIT_API_KEY` - Wit.ai API key for NLP
+- `GITHUB_CLIENT_ID` - GitHub OAuth client ID
+- `GITHUB_CLIENT_SECRET` - GitHub OAuth client secret
+- `GOOGLE_CLIENT_ID` - Google OAuth client ID
+- `GOOGLE_CLIENT_SECRET` - Google OAuth client secret
 
-## 📊 Monitoring
+## License
 
-### Health Checks
-- API endpoint monitoring
-- Database connection status
-- Background job health
-- Email service status
+This project is licensed under the ISC License.
 
-### Logging
-- Structured logging with timestamps
-- Error tracking and reporting
-- Performance metrics
-- User activity logs
+## Support
 
-### Analytics
-- Task completion rates
-- User engagement metrics
-- Performance benchmarks
-- Error frequency tracking
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Development Guidelines
-- Follow the existing code style
-- Write tests for new features
-- Update documentation
-- Ensure all tests pass
-- Follow semantic versioning
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🆘 Support
-
-### Getting Help
-- **Documentation**: Check this README and API docs
-- **Issues**: Create a GitHub issue for bugs
-- **Discussions**: Use GitHub Discussions for questions
-- **Email**: Contact the maintainers directly
-
-### Common Issues
-
-#### Backend Issues
-- **MongoDB Connection**: Check MONGODB_URL and database status
-- **JWT Errors**: Verify JWT secrets and token expiration
-- **Email Failures**: Check email credentials and SMTP settings
-
-#### Frontend Issues
-- **API Connection**: Verify backend URL and CORS settings
-- **Authentication**: Check token storage and refresh logic
-- **Build Errors**: Ensure all dependencies are installed
-
-#### Deployment Issues
-- **Environment Variables**: Verify all required env vars are set
-- **Database Access**: Check database connectivity and permissions
-- **Port Conflicts**: Ensure ports are available and properly configured
-
-## 🎉 Acknowledgments
-
-- **Material-UI**: For the excellent React component library
-- **TanStack Query**: For powerful data fetching and caching
-- **MongoDB**: For the flexible document database
-- **Express.js**: For the robust web framework
-- **React**: For the amazing frontend library
-- **Vite**: For the fast build tool
-- **Playwright**: For reliable E2E testing
-
-## 📈 Roadmap
-
-### Upcoming Features
-- **Mobile App**: React Native mobile application
-- **Team Collaboration**: Multi-user task sharing
-- **Calendar Integration**: Google Calendar and Outlook sync
-- **Advanced Analytics**: Machine learning insights
-- **API Webhooks**: Real-time event notifications
-- **Offline Support**: Progressive Web App features
-- **Multi-language**: Internationalization support
-- **Dark Mode**: Enhanced UI themes
-
-### Performance Improvements
-- **Caching**: Redis-based caching layer
-- **CDN**: Content delivery network integration
-- **Database Optimization**: Query optimization and indexing
-- **Bundle Splitting**: Code splitting for faster loading
-- **Image Optimization**: WebP and lazy loading
-- **Service Workers**: Background sync and offline support
-
----
-
-**Made with ❤️ by the Smart Task Scheduler Team**
+For issues and questions, please open an issue in the repository.
