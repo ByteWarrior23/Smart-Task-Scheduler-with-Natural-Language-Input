@@ -70,12 +70,32 @@ export const useAuthQueries = () => {
     });
   };
 
+  const useForgotPassword = () => {
+    return useMutation({
+      mutationFn: async (data) => {
+        const response = await authApi.forgotPassword(data);
+        return response.data;
+      },
+    });
+  };
+
+  const useResetPassword = () => {
+    return useMutation({
+      mutationFn: async (data) => {
+        const response = await authApi.resetPassword(data);
+        return response.data;
+      },
+    });
+  };
+
   return {
     useLogin,
     useRegister,
     useLogout,
     useGetUser,
     useRefreshToken,
+    useForgotPassword,
+    useResetPassword,
   };
 };
 

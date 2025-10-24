@@ -75,7 +75,7 @@ const RegisterPage = () => {
     setIsLoading(true);
     try {
       await registerMutation.mutateAsync(formData);
-      navigate('/login');
+      navigate('/dashboard');
     } catch (error) {
       setErrors({ general: error.response?.data?.message || 'Registration failed. Please try again.' });
     } finally {

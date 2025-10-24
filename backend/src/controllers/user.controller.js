@@ -259,6 +259,30 @@ const forgotPassword = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, "Password reset link sent to your email"));
 });
 
+const resetPassword = asyncHandler(async (req, res) => {
+    const { token, newPassword } = req.body;
+    if (!token || !newPassword) throw new ApiError(400, "Token and new password are required");
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_RESET_TOKEN);
+        const user = await User.findById(decoded.userId);
+        if (!user) throw new ApiError(404, "User not found");
+
+        // Hash the new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashedPassword;
+        user.refreshToken = null; // Invalidate all refresh tokens for security
+        await user.save({ validateBeforeSave: false });
+
+        return res.status(200).json(new ApiResponse(200, "Password reset successfully"));
+    } catch (error) {
+        if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+            throw new ApiError(401, "Invalid or expired reset token");
+        }
+        throw error;
+    }
+});
+
 
 export {registerUser,
     loginUser,
@@ -269,5 +293,6 @@ export {registerUser,
     changePassword,
     deleteUser,
     updateEmailConfig,
-    forgotPassword
+    forgotPassword,
+    resetPassword
 };
