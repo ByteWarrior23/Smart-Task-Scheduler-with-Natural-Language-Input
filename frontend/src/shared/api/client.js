@@ -49,6 +49,31 @@ api.interceptors.response.use(
     const status = error?.response?.status;
 
     if (status === 401 && !original._retry) {
+      const url = original?.url || '';
+      const isAuthFlowEndpoint = (
+        url.startsWith('/api/v1/auth/login') ||
+        url.startsWith('/api/v1/auth/register') ||
+        url.startsWith('/api/v1/auth/refresh') ||
+        url.startsWith('/api/v1/auth/forgot-password') ||
+        url.startsWith('/api/v1/auth/reset-password') ||
+        url.startsWith('/api/v1/auth/github') ||
+        url.startsWith('/api/v1/auth/google')
+          );
+
+      // Do not attempt refresh for auth endpoints themselves
+      if (isAuthFlowEndpoint) {
+        return Promise.reject(error);
+      }
+
+      const currentTokens = getAuthTokens();
+      const currentRefreshToken = currentTokens?.refreshToken;
+
+      // If we don't have a refresh token, don't call refresh API
+      if (!currentRefreshToken) {
+        clearAuthTokens();
+        return Promise.reject(error);
+      }
+
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           subscribeTokenRefresh((token) => {
@@ -57,7 +82,7 @@ api.interceptors.response.use(
               resolve(api(original));
             } else {
               reject(error);
-            }
+                         }
           });
         });
       }
@@ -65,7 +90,7 @@ api.interceptors.response.use(
       original._retry = true;
       isRefreshing = true;
       try {
-        const res = await axios.post('/api/v1/auth/refresh', { refreshToken: getAuthTokens()?.refreshToken });
+        const res = await axios.post('/api/v1/auth/refresh', { refreshToken: currentRefreshToken });
         const { accessToken, refreshToken } = res.data.data;
         setAuthTokens({ accessToken, refreshToken });
         onRefreshed(accessToken);
@@ -83,3 +108,4 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+export default api;

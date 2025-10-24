@@ -4,21 +4,28 @@ import nodemailer from 'nodemailer';
 const createTransporter = (emailConfig = {}) => {
     const user = emailConfig.user || process.env.EMAIL_USER;
     const pass = emailConfig.pass || process.env.EMAIL_PASS;
-    
+
     // If no email credentials are provided, return null to indicate email is not configured
     if (!user || !pass) {
         console.log('Email credentials not configured. Email functionality disabled.');
         return null;
     }
-    
+
+    // Use Gmail with app password or alternative SMTP configuration
     const config = {
-        service: emailConfig.service || 'gmail',
+        host: emailConfig.host || 'smtp.gmail.com',
+        port: emailConfig.port || 587,
+        secure: false, // true for 465, false for other ports
         auth: {
             user: user,
             pass: pass
+        },
+        // Additional options for Gmail
+        tls: {
+            ciphers: 'SSLv3'
         }
     };
-    
+
     return nodemailer.createTransport(config);
 };
 
