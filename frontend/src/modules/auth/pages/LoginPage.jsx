@@ -66,7 +66,7 @@ const LoginPage = () => {
     setIsLoading(true);
     try {
       await loginMutation.mutateAsync(formData);
-      navigate('/');
+      navigate('/dashboard');
     } catch (error) {
       setErrors({ general: error.response?.data?.message || 'Login failed. Please try again.' });
     } finally {
@@ -75,8 +75,15 @@ const LoginPage = () => {
   };
 
   const handleSocialLogin = (provider) => {
-    // Mock social login
-    console.log(`Login with ${provider}`);
+    if (provider === 'GitHub') {
+      // Redirect to backend GitHub OAuth route
+      window.location.href = '/api/v1/auth/github';
+    } else if (provider === 'Google') {
+      // Redirect to backend Google OAuth route
+      window.location.href = '/api/v1/auth/google';
+    } else {
+      console.log(`${provider} login not yet implemented`);
+    }
   };
 
   return (

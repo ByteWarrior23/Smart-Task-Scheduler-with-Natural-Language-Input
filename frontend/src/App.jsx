@@ -10,11 +10,12 @@ import { AppThemeProvider } from './shared/theme/theme.jsx';
 import { AuthProvider, useAuth } from './modules/auth/AuthProvider';
 
 // Pages - Import with error handling
-let LoginPage, RegisterPage, DashboardPage, TasksPage, VoicePage, AdminPage, JobsPage;
+let LoginPage, RegisterPage, OAuthCallback, DashboardPage, TasksPage, VoicePage, AdminPage, JobsPage;
 
 try {
   LoginPage = React.lazy(() => import('./modules/auth/pages/LoginPage'));
   RegisterPage = React.lazy(() => import('./modules/auth/pages/RegisterPage'));
+  OAuthCallback = React.lazy(() => import('./modules/auth/pages/OAuthCallback'));
   DashboardPage = React.lazy(() => import('./modules/app/pages/DashboardPage'));
   TasksPage = React.lazy(() => import('./modules/tasks/pages/TasksPage'));
   VoicePage = React.lazy(() => import('./modules/voice/pages/VoicePage'));
@@ -311,6 +312,14 @@ const App = () => {
                     element={
                       <React.Suspense fallback={<LoadingSpinner />}>
                         {RegisterPage ? <RegisterPage /> : <LoadingSpinner />}
+                      </React.Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="/auth/callback" 
+                    element={
+                      <React.Suspense fallback={<LoadingSpinner />}>
+                        {OAuthCallback ? <OAuthCallback /> : <LoadingSpinner />}
                       </React.Suspense>
                     } 
                   />

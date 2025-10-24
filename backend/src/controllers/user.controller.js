@@ -22,14 +22,36 @@ const generateAccessTokenandRefreshToken = async (userId) => {
 const registerUser = asyncHandler(async (req, res) => {
   const { username, email, fullname, password } = req.body;
   if (!username || !email || !fullname || !password) {
-    throw new ApiError(400, "All fields are required");
+    throw new ApiError(400, "All fields are required: username, email, fullname, and password");
+  }
+
+  // Validate password strength
+  if (password.length < 8) {
+    throw new ApiError(400, "Password must be at least 8 characters long");
   }
 
   const normalizedUsername = username.trim();
   const normalizedEmail = email.trim().toLowerCase();
 
-  const existingUser = await User.findOne({ $or: [{ username: normalizedUsername }, { email: normalizedEmail }] });
-  if (existingUser) throw new ApiError(400, "User already exists");
+  // Validate email format
+  const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
+  if (!emailRegex.test(normalizedEmail)) {
+    throw new ApiError(400, "Please provide a valid email address");
+  }
+
+  // Check for existing user
+  const existingUser = await User.findOne({ 
+    $or: [{ username: normalizedUsername }, { email: normalizedEmail }] 
+  });
+  
+  if (existingUser) {
+    if (existingUser.username === normalizedUsername) {
+      throw new ApiError(409, "Username already taken. Please choose a different username.");
+    }
+    if (existingUser.email === normalizedEmail) {
+      throw new ApiError(409, "Email already registered. Please use a different email or sign in.");
+    }
+  }
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -38,6 +60,7 @@ const registerUser = asyncHandler(async (req, res) => {
     email: normalizedEmail,
     fullname,
     password: hashedPassword,
+    authProvider: 'local'
   });
 
   const safeUser = {
@@ -45,23 +68,51 @@ const registerUser = asyncHandler(async (req, res) => {
     username: user.username,
     email: user.email,
     fullname: user.fullname,
+    authProvider: user.authProvider
   };
 
-  return res.status(201).json(new ApiResponse(201, "User created successfully", safeUser));
+  return res.status(201).json(new ApiResponse(201, "User created successfully! You can now sign in.", safeUser));
 });
 
 // Login
 const loginUser = asyncHandler(async (req, res) => {
   const { username, email, password } = req.body;
 
+  // Validate that at least username or email is provided
+  if (!username && !email) {
+    throw new ApiError(400, "Please provide either username or email");
+  }
+
+  if (!password) {
+    throw new ApiError(400, "Password is required");
+  }
+
   const normalizedUsername = username?.trim();
   const normalizedEmail = email?.trim().toLowerCase();
 
-  const user = await User.findOne({ $or: [{ username: normalizedUsername }, { email: normalizedEmail }] });
-  if (!user) throw new ApiError(400, "User not found");
+  // Build query only with provided fields
+  const query = [];
+  if (normalizedUsername) query.push({ username: normalizedUsername });
+  if (normalizedEmail) query.push({ email: normalizedEmail });
+
+  const user = await User.findOne({ $or: query });
+  if (!user) {
+    throw new ApiError(401, "Invalid credentials. User not found.");
+  }
+
+  // Check if user is OAuth user
+  if (user.authProvider !== 'local') {
+    throw new ApiError(400, `This account uses ${user.authProvider} authentication. Please sign in with ${user.authProvider}.`);
+  }
+
+  if (!user.password) {
+    throw new ApiError(400, "This account doesn't have a password. Please use social login.");
+  }
 
   const isPasswordCorrect = await bcrypt.compare(password, user.password);
-  if (!isPasswordCorrect) throw new ApiError(400, "Invalid password");
+  if (!isPasswordCorrect) {
+    throw new ApiError(401, "Invalid credentials. Incorrect password.");
+  }
 
   const { accessToken, refreshToken } = await generateAccessTokenandRefreshToken(user._id);
 
@@ -70,6 +121,8 @@ const loginUser = asyncHandler(async (req, res) => {
     username: user.username,
     email: user.email,
     fullname: user.fullname,
+    authProvider: user.authProvider,
+    profile_picture: user.profile_picture
   };
 
   return res.status(200).json(new ApiResponse(200, "User logged in successfully", { safeUser, accessToken, refreshToken }));
@@ -146,7 +199,7 @@ const refreshSession = asyncHandler(async (req, res) => {
         if(!user || user.refreshToken !== incomingRefreshToken){
             throw new ApiError(401, "Invalid refresh token")
         }
-        const { accessToken, refreshToken: newRefreshToken } = await generateAccessTokenandRefreshToken(user.id)
+        const { accessToken, refreshToken: newRefreshToken } = await generateAccessTokenandRefreshToken(user._id)
 
         const options = {
             httpOnly : true,

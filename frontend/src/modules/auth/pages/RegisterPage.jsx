@@ -84,8 +84,15 @@ const RegisterPage = () => {
   };
 
   const handleSocialRegister = (provider) => {
-    // Mock social registration
-    console.log(`Register with ${provider}`);
+    if (provider === 'GitHub') {
+      // Redirect to backend GitHub OAuth route
+      window.location.href = '/api/v1/auth/github';
+    } else if (provider === 'Google') {
+      // Redirect to backend Google OAuth route
+      window.location.href = '/api/v1/auth/google';
+    } else {
+      console.log(`${provider} registration not yet implemented`);
+    }
   };
 
   return (
