@@ -5,244 +5,124 @@ import { taskApi } from '../api/api';
 export const useTaskQueries = () => {
   const queryClient = useQueryClient();
 
-  // Get all tasks
   const useGetTasks = (params = {}) => {
     return useQuery({
-      queryKey: ['tasks', 'list', params],
-      queryFn: () => taskApi.getAll(params),
-      staleTime: 30 * 1000, // 30 seconds
+      queryKey: ['tasks', params],
+      queryFn: async () => {
+        const response = await taskApi.getAll(params);
+        return response.data;
+      },
     });
   };
 
-  // Get task by ID
-  const useGetTask = (taskId) => {
+  const useGetTask = (id) => {
     return useQuery({
-      queryKey: ['tasks', 'detail', taskId],
-      queryFn: () => taskApi.getById(taskId),
-      enabled: !!taskId,
+      queryKey: ['task', id],
+      queryFn: async () => {
+        const response = await taskApi.getById(id);
+        return response.data;
+      },
+      enabled: !!id,
     });
   };
 
-  // Search tasks
-  const useSearchTasks = (query) => {
-    return useQuery({
-      queryKey: ['tasks', 'search', query],
-      queryFn: () => taskApi.search(query),
-      enabled: !!query && query.length > 2,
-    });
-  };
-
-  // Filter tasks by category
-  const useFilterByCategory = (category) => {
-    return useQuery({
-      queryKey: ['tasks', 'category', category],
-      queryFn: () => taskApi.filterByCategory(category),
-      enabled: !!category,
-    });
-  };
-
-  // Get recurring tasks
-  const useGetRecurringTasks = () => {
-    return useQuery({
-      queryKey: ['tasks', 'recurring'],
-      queryFn: taskApi.getRecurring,
-    });
-  };
-
-  // Get recurring task instances
-  const useGetRecurringInstances = (taskId) => {
-    return useQuery({
-      queryKey: ['tasks', 'recurring', 'instances', taskId],
-      queryFn: () => taskApi.getRecurringInstances(taskId),
-      enabled: !!taskId,
-    });
-  };
-
-  // Get reminder stats
-  const useGetReminderStats = () => {
-    return useQuery({
-      queryKey: ['tasks', 'reminder-stats'],
-      queryFn: taskApi.getReminderStats,
-      refetchInterval: 60 * 1000, // Refetch every minute
-    });
-  };
-
-  // Get analytics
-  const useGetAnalytics = () => {
-    return useQuery({
-      queryKey: ['tasks', 'analytics'],
-      queryFn: taskApi.getAnalytics,
-    });
-  };
-
-  // Get time slots
-  const useGetTimeSlots = (duration, window = 7) => {
-    return useQuery({
-      queryKey: ['tasks', 'time-slots', duration, window],
-      queryFn: () => taskApi.getTimeSlots(duration, window),
-      enabled: !!duration,
-    });
-  };
-
-  // Create task mutation
   const useCreateTask = () => {
     return useMutation({
-      mutationFn: taskApi.create,
+      mutationFn: async (taskData) => {
+        const response = await taskApi.create(taskData);
+        return response.data;
+      },
       onSuccess: () => {
         queryClient.invalidateQueries(['tasks']);
       },
     });
   };
 
-  // Update task mutation
   const useUpdateTask = () => {
     return useMutation({
-      mutationFn: ({ taskId, data }) => taskApi.update(taskId, data),
-      onSuccess: (_, { taskId }) => {
+      mutationFn: async ({ id, ...taskData }) => {
+        const response = await taskApi.update(id, taskData);
+        return response.data;
+      },
+      onSuccess: () => {
         queryClient.invalidateQueries(['tasks']);
-        queryClient.invalidateQueries(['tasks', 'detail', taskId]);
       },
     });
   };
 
-  // Delete task mutation
   const useDeleteTask = () => {
     return useMutation({
-      mutationFn: taskApi.delete,
+      mutationFn: async (id) => {
+        await taskApi.delete(id);
+      },
       onSuccess: () => {
         queryClient.invalidateQueries(['tasks']);
       },
     });
   };
 
-  // Complete task mutation
   const useCompleteTask = () => {
     return useMutation({
-      mutationFn: taskApi.complete,
+      mutationFn: async (id) => {
+        const response = await taskApi.complete(id);
+        return response.data;
+      },
       onSuccess: () => {
         queryClient.invalidateQueries(['tasks']);
       },
     });
   };
 
-  // Mark task as pending mutation
-  const usePendingTask = () => {
-    return useMutation({
-      mutationFn: taskApi.pending,
-      onSuccess: () => {
-        queryClient.invalidateQueries(['tasks']);
-      },
-    });
-  };
-
-  // Archive task mutation
   const useArchiveTask = () => {
     return useMutation({
-      mutationFn: taskApi.archive,
+      mutationFn: async (id) => {
+        const response = await taskApi.archive(id);
+        return response.data;
+      },
       onSuccess: () => {
         queryClient.invalidateQueries(['tasks']);
       },
     });
   };
 
-  // Unarchive task mutation
-  const useUnarchiveTask = () => {
-    return useMutation({
-      mutationFn: taskApi.unarchive,
-      onSuccess: () => {
-        queryClient.invalidateQueries(['tasks']);
-      },
-    });
-  };
-
-  // Add comment mutation
   const useAddComment = () => {
     return useMutation({
-      mutationFn: ({ taskId, comment }) => taskApi.addComment(taskId, comment),
-      onSuccess: (_, { taskId }) => {
-        queryClient.invalidateQueries(['tasks', 'detail', taskId]);
+      mutationFn: async ({ taskId, comment }) => {
+        const response = await taskApi.addComment(taskId, comment);
+        return response.data;
+      },
+      onSuccess: () => {
         queryClient.invalidateQueries(['tasks']);
       },
     });
   };
 
-  // Get comments
-  const useGetComments = (taskId) => {
+  const useGetAnalytics = () => {
     return useQuery({
-      queryKey: ['tasks', 'comments', taskId],
-      queryFn: () => taskApi.getComments(taskId),
-      enabled: !!taskId,
-    });
-  };
-
-  // Parse natural language mutation
-  const useParseNaturalLanguage = () => {
-    return useMutation({
-      mutationFn: taskApi.parseNaturalLanguage,
-    });
-  };
-
-  // Create recurring task mutation
-  const useCreateRecurringTask = () => {
-    return useMutation({
-      mutationFn: taskApi.createRecurring,
-      onSuccess: () => {
-        queryClient.invalidateQueries(['tasks', 'recurring']);
-        queryClient.invalidateQueries(['tasks']);
+      queryKey: ['analytics'],
+      queryFn: async () => {
+        const response = await taskApi.getAnalytics();
+        return response.data;
       },
     });
   };
 
-  // Update recurring task mutation
-  const useUpdateRecurringTask = () => {
-    return useMutation({
-      mutationFn: ({ taskId, data }) => taskApi.updateRecurring(taskId, data),
-      onSuccess: () => {
-        queryClient.invalidateQueries(['tasks', 'recurring']);
-        queryClient.invalidateQueries(['tasks']);
+  const useGetReminderStats = () => {
+    return useQuery({
+      queryKey: ['reminder-stats'],
+      queryFn: async () => {
+        const response = await taskApi.getReminderStats();
+        return response.data;
       },
     });
   };
 
-  // Delete recurring task mutation
-  const useDeleteRecurringTask = () => {
-    return useMutation({
-      mutationFn: ({ taskId, deleteType }) => taskApi.deleteRecurring(taskId, deleteType),
-      onSuccess: () => {
-        queryClient.invalidateQueries(['tasks', 'recurring']);
-        queryClient.invalidateQueries(['tasks']);
-      },
-    });
-  };
-
-  // Schedule reminder mutation
-  const useScheduleReminder = () => {
-    return useMutation({
-      mutationFn: ({ taskId, reminderTime }) => taskApi.scheduleReminder(taskId, reminderTime),
-      onSuccess: () => {
-        queryClient.invalidateQueries(['tasks', 'reminder-stats']);
-      },
-    });
-  };
-
-  // Check deadlines mutation
-  const useCheckDeadlines = () => {
-    return useMutation({
-      mutationFn: taskApi.checkDeadlines,
-    });
-  };
-
-  // Send welcome email mutation
-  const useSendWelcomeEmail = () => {
-    return useMutation({
-      mutationFn: ({ email, emailConfig }) => taskApi.sendWelcomeEmail(email, emailConfig),
-    });
-  };
-
-  // Bulk operations
   const useBulkUpdate = () => {
     return useMutation({
-      mutationFn: ({ taskIds, updates }) => taskApi.bulkUpdate(taskIds, updates),
+      mutationFn: async ({ taskIds, updates }) => {
+        const response = await taskApi.bulkUpdate(taskIds, updates);
+        return response.data;
+      },
       onSuccess: () => {
         queryClient.invalidateQueries(['tasks']);
       },
@@ -251,40 +131,9 @@ export const useTaskQueries = () => {
 
   const useBulkDelete = () => {
     return useMutation({
-      mutationFn: taskApi.bulkDelete,
-      onSuccess: () => {
-        queryClient.invalidateQueries(['tasks']);
+      mutationFn: async (taskIds) => {
+        await taskApi.bulkDelete(taskIds);
       },
-    });
-  };
-
-  const useBulkArchive = () => {
-    return useMutation({
-      mutationFn: taskApi.bulkArchive,
-      onSuccess: () => {
-        queryClient.invalidateQueries(['tasks']);
-      },
-    });
-  };
-
-  // Detect conflicts mutation
-  const useDetectConflicts = () => {
-    return useMutation({
-      mutationFn: ({ deadline, duration }) => taskApi.detectConflicts(deadline, duration),
-    });
-  };
-
-  // Export tasks mutation
-  const useExportTasks = () => {
-    return useMutation({
-      mutationFn: (format) => taskApi.exportTasks(format),
-    });
-  };
-
-  // Import tasks mutation
-  const useImportTasks = () => {
-    return useMutation({
-      mutationFn: ({ file, format }) => taskApi.importTasks(file, format),
       onSuccess: () => {
         queryClient.invalidateQueries(['tasks']);
       },
@@ -292,39 +141,17 @@ export const useTaskQueries = () => {
   };
 
   return {
-    // Queries
     useGetTasks,
     useGetTask,
-    useSearchTasks,
-    useFilterByCategory,
-    useGetRecurringTasks,
-    useGetRecurringInstances,
-    useGetReminderStats,
-    useGetAnalytics,
-    useGetTimeSlots,
-    useGetComments,
-    
-    // Mutations
     useCreateTask,
     useUpdateTask,
     useDeleteTask,
     useCompleteTask,
-    usePendingTask,
     useArchiveTask,
-    useUnarchiveTask,
     useAddComment,
-    useParseNaturalLanguage,
-    useCreateRecurringTask,
-    useUpdateRecurringTask,
-    useDeleteRecurringTask,
-    useScheduleReminder,
-    useCheckDeadlines,
-    useSendWelcomeEmail,
+    useGetAnalytics,
+    useGetReminderStats,
     useBulkUpdate,
     useBulkDelete,
-    useBulkArchive,
-    useDetectConflicts,
-    useExportTasks,
-    useImportTasks,
   };
 };

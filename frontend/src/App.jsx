@@ -6,7 +6,7 @@ import { Box } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Theme and Components
-import { AppThemeProvider } from './shared/theme/theme';
+import { AppThemeProvider } from './shared/theme/theme.jsx';
 import Navbar from './shared/components/Navbar';
 import { AuthProvider } from './modules/auth/AuthProvider';
 

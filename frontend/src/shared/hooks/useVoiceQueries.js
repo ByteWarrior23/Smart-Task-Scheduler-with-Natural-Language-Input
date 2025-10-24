@@ -5,33 +5,52 @@ import { voiceApi } from '../api/api';
 export const useVoiceQueries = () => {
   const queryClient = useQueryClient();
 
-  // Transcribe audio mutation
   const useTranscribeAudio = () => {
     return useMutation({
-      mutationFn: ({ audioFile, options }) => voiceApi.transcribe(audioFile, options),
+      mutationFn: async (audioFile) => {
+        const response = await voiceApi.transcribe(audioFile);
+        return response.data;
+      },
     });
   };
 
-  // Parse voice input mutation
-  const useParseVoice = () => {
-    return useMutation({
-      mutationFn: ({ audioFile, options }) => voiceApi.parse(audioFile, options),
-    });
-  };
-
-  // Create task from voice mutation
   const useCreateTaskFromVoice = () => {
     return useMutation({
-      mutationFn: ({ audioFile, options }) => voiceApi.createTask(audioFile, options),
+      mutationFn: async (voiceData) => {
+        const response = await voiceApi.createTask(voiceData);
+        return response.data;
+      },
       onSuccess: () => {
         queryClient.invalidateQueries(['tasks']);
       },
     });
   };
 
+  const useGetVoiceHistory = () => {
+    return useQuery({
+      queryKey: ['voice-history'],
+      queryFn: async () => {
+        const response = await voiceApi.getHistory();
+        return response.data;
+      },
+    });
+  };
+
+  const useDeleteVoiceRecord = () => {
+    return useMutation({
+      mutationFn: async (id) => {
+        await voiceApi.delete(id);
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries(['voice-history']);
+      },
+    });
+  };
+
   return {
     useTranscribeAudio,
-    useParseVoice,
     useCreateTaskFromVoice,
+    useGetVoiceHistory,
+    useDeleteVoiceRecord,
   };
 };

@@ -27,8 +27,8 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
-import { useAuthQueries } from '../shared/hooks/useAuthQueries';
-import { validationSchemas, validateForm } from '../shared/utils/validation';
+import { useAuthQueries } from '../../../shared/hooks/useAuthQueries';
+import { validationSchemas, validateForm } from '../../../shared/utils/validation';
 
 const LoginPage = () => {
   const navigate = useNavigate();

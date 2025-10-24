@@ -1,110 +1,82 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { authApi } from '../api/api';
-import { useAuth } from '../../modules/auth/AuthProvider';
 
-// Auth Queries
+// Authentication Queries
 export const useAuthQueries = () => {
   const queryClient = useQueryClient();
-  const { user, logout } = useAuth();
 
-  // Get current user
-  const useGetMe = () => {
-    return useQuery({
-      queryKey: ['auth', 'me'],
-      queryFn: authApi.getMe,
-      enabled: !!user,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    });
-  };
-
-  // Login mutation
   const useLogin = () => {
     return useMutation({
-      mutationFn: authApi.login,
-      onSuccess: () => {
-        queryClient.invalidateQueries(['auth']);
+      mutationFn: async (credentials) => {
+        const response = await authApi.login(credentials);
+        return response.data;
+      },
+      onSuccess: (data) => {
+        // Store tokens
+        localStorage.setItem('accessToken', data.accessToken);
+        localStorage.setItem('refreshToken', data.refreshToken);
+        queryClient.setQueryData(['user'], data.user);
       },
     });
   };
 
-  // Register mutation
   const useRegister = () => {
     return useMutation({
-      mutationFn: authApi.register,
+      mutationFn: async (userData) => {
+        const response = await authApi.register(userData);
+        return response.data;
+      },
     });
   };
 
-  // Logout mutation
   const useLogout = () => {
     return useMutation({
-      mutationFn: authApi.logout,
+      mutationFn: async () => {
+        const refreshToken = localStorage.getItem('refreshToken');
+        if (refreshToken) {
+          await authApi.logout();
+        }
+      },
       onSuccess: () => {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
         queryClient.clear();
-        logout();
       },
     });
   };
 
-  // Refresh token mutation
+  const useGetUser = () => {
+    return useQuery({
+      queryKey: ['user'],
+      queryFn: async () => {
+        const response = await authApi.getMe();
+        return response.data;
+      },
+      enabled: !!localStorage.getItem('accessToken'),
+    });
+  };
+
   const useRefreshToken = () => {
     return useMutation({
-      mutationFn: authApi.refresh,
+      mutationFn: async () => {
+        const refreshToken = localStorage.getItem('refreshToken');
+        const response = await authApi.refresh(refreshToken);
+        return response.data;
+      },
       onSuccess: (data) => {
-        queryClient.invalidateQueries(['auth']);
-      },
-    });
-  };
-
-  // Change password mutation
-  const useChangePassword = () => {
-    return useMutation({
-      mutationFn: authApi.changePassword,
-      onSuccess: () => {
-        queryClient.invalidateQueries(['auth', 'me']);
-      },
-    });
-  };
-
-  // Update user details mutation
-  const useUpdateDetails = () => {
-    return useMutation({
-      mutationFn: authApi.updateDetails,
-      onSuccess: () => {
-        queryClient.invalidateQueries(['auth', 'me']);
-      },
-    });
-  };
-
-  // Update email config mutation
-  const useUpdateEmailConfig = () => {
-    return useMutation({
-      mutationFn: authApi.updateEmailConfig,
-      onSuccess: () => {
-        queryClient.invalidateQueries(['auth', 'me']);
-      },
-    });
-  };
-
-  // Delete account mutation
-  const useDeleteAccount = () => {
-    return useMutation({
-      mutationFn: authApi.deleteAccount,
-      onSuccess: () => {
-        queryClient.clear();
-        logout();
+        localStorage.setItem('accessToken', data.accessToken);
+        localStorage.setItem('refreshToken', data.refreshToken);
       },
     });
   };
 
   return {
-    useGetMe,
     useLogin,
     useRegister,
     useLogout,
+    useGetUser,
     useRefreshToken,
-    useChangePassword,
-    useUpdateDetails,
-    useUpdateEmailConfig,
-    useDeleteAccount,
   };
 };
+
+

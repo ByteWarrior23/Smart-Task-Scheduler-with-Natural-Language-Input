@@ -1,80 +1,72 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { api, setAuthTokens, clearAuthTokens, getAuthTokens } from '../../shared/api/client';
-import { useNavigate } from 'react-router-dom';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useAuthQueries } from '../../shared/hooks/useAuthQueries';
 
-const AuthContext = createContext(undefined);
+const AuthContext = createContext();
 
-export function AuthProvider({ children }) {
+export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [accessToken, setAccessToken] = useState(null);
-  const [refreshToken, setRefreshToken] = useState(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const { useGetUser, useRefreshToken } = useAuthQueries();
 
-  const bootstrap = useCallback(async () => {
-    const tokens = getAuthTokens();
-    if (!tokens?.accessToken) {
+  const { data: userData, isLoading: userLoading } = useGetUser();
+  const refreshTokenMutation = useRefreshToken();
+
+  useEffect(() => {
+    const initAuth = async () => {
+      const token = localStorage.getItem('accessToken');
+      if (token) {
+        try {
+          // Try to get user data
+          if (userData) {
+            setUser(userData);
+          }
+        } catch (error) {
+          // Token might be expired, try to refresh
+          try {
+            await refreshTokenMutation.mutateAsync();
+          } catch (refreshError) {
+            // Refresh failed, clear auth
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            setUser(null);
+          }
+        }
+      }
       setLoading(false);
-      return;
-    }
-    setAccessToken(tokens.accessToken);
-    setRefreshToken(tokens.refreshToken ?? null);
-    try {
-      const res = await api.get('/api/v1/auth/me');
-      setUser(res.data.data);
-    } catch (e) {
-      clearAuthTokens();
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    };
 
-  useEffect(() => { bootstrap(); }, [bootstrap]);
+    initAuth();
+  }, [userData]);
 
-  const login = useCallback(async (payload) => {
-    const res = await api.post('/api/v1/auth/login', payload);
-    const { accessToken, refreshToken } = res.data.data;
-    setAccessToken(accessToken);
-    setRefreshToken(refreshToken);
-    setAuthTokens({ accessToken, refreshToken });
-    try {
-      const me = await api.get('/api/v1/auth/me');
-      setUser(me.data.data);
-    } catch {
-      // ignore
-    }
-    navigate('/tasks');
-  }, [navigate]);
+  const login = async (credentials) => {
+    // This will be handled by the login mutation
+    setLoading(false);
+  };
 
-  const register = useCallback(async (payload) => {
-    await api.post('/api/v1/auth/register', payload);
-    await login({ username: payload.username, password: payload.password });
-  }, [login]);
-
-  const refresh = useCallback(async () => {
-    const res = await api.post('/api/v1/auth/refresh', { refreshToken: getAuthTokens()?.refreshToken });
-    const { accessToken: nextAccess, refreshToken: nextRefresh } = res.data.data;
-    setAccessToken(nextAccess);
-    setRefreshToken(nextRefresh);
-    setAuthTokens({ accessToken: nextAccess, refreshToken: nextRefresh });
-  }, []);
-
-  const logout = useCallback(async () => {
-    try { await api.post('/api/v1/auth/logout'); } catch {}
-    clearAuthTokens();
+  const logout = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
     setUser(null);
-    setAccessToken(null);
-    setRefreshToken(null);
-  }, []);
+  };
 
-  const value = useMemo(() => ({ user, accessToken, refreshToken, loading, login, register, refresh, logout }), [user, accessToken, refreshToken, loading, login, register, refresh, logout]);
+  const value = {
+    user,
+    loading: loading || userLoading,
+    login,
+    logout,
+  };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
 
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
-  return ctx;
-}
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
