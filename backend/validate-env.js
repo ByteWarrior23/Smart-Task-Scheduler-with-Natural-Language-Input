@@ -6,8 +6,8 @@ dotenv.config();
 // Required environment variables
 const requiredEnvVars = [
     'MONGODB_URL',
-    'JWT_ACCESS_TOKEN_SECRET',
-    'JWT_REFRESH_TOKEN_SECRET',
+    'JWT_ACCESS_TOKEN',
+    'JWT_REFRESH_TOKEN',
     'PORT'
 ];
 

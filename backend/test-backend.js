@@ -2,7 +2,7 @@
 // Comprehensive testing covering all features as specified
 import fetch from 'node-fetch';
 
-const BASE_URL = 'http://localhost:3000/api/v1';
+const BASE_URL = `http://localhost:${process.env.PORT || 3000}/api/v1`;
 let accessToken = '';
 let refreshToken = '';
 let userId = '';
@@ -599,7 +599,8 @@ async function runAllTests() {
 // Check if server is running
 async function checkServer() {
     try {
-        const response = await fetch('http://localhost:3000/api/v1/auth/register', { method: 'POST' });
+        const port = process.env.PORT || 3000;
+        const response = await fetch(`http://localhost:${port}/api/v1/auth/register`, { method: 'POST' });
         return true;
     } catch (error) {
         console.log('ERROR: Server is not running. Please start the server first.');
