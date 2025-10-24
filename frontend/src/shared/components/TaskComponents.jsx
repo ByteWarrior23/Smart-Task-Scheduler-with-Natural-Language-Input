@@ -33,12 +33,12 @@ const priorityColors = {
   [TaskPriority.URGENT]: 'error',
 };
 
-// Priority icons
+// Priority labels (no emojis)
 const priorityIcons = {
-  [TaskPriority.LOW]: '🟢',
-  [TaskPriority.MEDIUM]: '🟡',
-  [TaskPriority.HIGH]: '🟠',
-  [TaskPriority.URGENT]: '🔴',
+  [TaskPriority.LOW]: '',
+  [TaskPriority.MEDIUM]: '',
+  [TaskPriority.HIGH]: '',
+  [TaskPriority.URGENT]: '',
 };
 
 // Task card component
@@ -74,15 +74,15 @@ export const TaskCard = ({
     const date = new Date(deadline);
     
     if (isPast(date)) {
-      return { text: 'Overdue', color: 'error', icon: '⚠️' };
+      return { text: 'Overdue', color: 'error', icon: '' };
     } else if (isToday(date)) {
-      return { text: 'Today', color: 'warning', icon: '🔥' };
+      return { text: 'Today', color: 'warning', icon: '' };
     } else if (isTomorrow(date)) {
-      return { text: 'Tomorrow', color: 'info', icon: '📅' };
+      return { text: 'Tomorrow', color: 'info', icon: '' };
     } else if (isThisWeek(date)) {
-      return { text: format(date, 'EEEE'), color: 'primary', icon: '📆' };
+      return { text: format(date, 'EEEE'), color: 'primary', icon: '' };
     } else {
-      return { text: format(date, 'MMM dd'), color: 'default', icon: '📅' };
+      return { text: format(date, 'MMM dd'), color: 'default', icon: '' };
     }
   };
 
@@ -117,12 +117,12 @@ export const TaskCard = ({
             </Typography>
             {task.recurring && (
               <Tooltip title="Recurring Task">
-                <Chip size="small" label="🔄" variant="outlined" />
+                <Chip size="small" label="Recurring" variant="outlined" />
               </Tooltip>
             )}
             {task.auto_categorized && (
               <Tooltip title="AI Categorized">
-                <Chip size="small" label="🤖" variant="outlined" />
+                <Chip size="small" label="AI" variant="outlined" />
               </Tooltip>
             )}
           </Box>
@@ -185,7 +185,7 @@ export const TaskCard = ({
             sx={{ mb: 2 }}
           >
             <Box display="flex" alignItems="center" gap={1}>
-              <span>{deadlineInfo.icon}</span>
+              {/* icon removed */}
               <Typography variant="body2">
                 {deadlineInfo.text} {task.deadline && format(new Date(task.deadline), 'h:mm a')}
               </Typography>

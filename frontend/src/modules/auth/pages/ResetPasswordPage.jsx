@@ -90,48 +90,7 @@ export function ResetPasswordPage() {
         },
       }}
     >
-      {/* Floating Background Elements */}
-      <motion.div
-        animate={{
-          y: [0, -20, 0],
-          rotate: [0, 5, -5, 0],
-        }}
-        transition={{
-          duration: 6,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-        style={{
-          position: 'absolute',
-          top: '10%',
-          left: '10%',
-          fontSize: '4rem',
-          opacity: 0.1,
-        }}
-      >
-        🔐
-      </motion.div>
-
-      <motion.div
-        animate={{
-          y: [0, 20, 0],
-          rotate: [0, -5, 5, 0],
-        }}
-        transition={{
-          duration: 8,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-        style={{
-          position: 'absolute',
-          top: '20%',
-          right: '15%',
-          fontSize: '3rem',
-          opacity: 0.1,
-        }}
-      >
-        🔑
-      </motion.div>
+      {/* Decorative background elements removed for a clean, professional look */}
 
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}

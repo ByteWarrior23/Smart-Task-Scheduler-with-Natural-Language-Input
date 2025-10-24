@@ -538,11 +538,11 @@ const UpcomingTasksList = ({ tasks, loading = false, onTaskClick }) => {
           
           {upcomingTasks.length === 0 ? (
             <Box sx={{ textAlign: 'center', py: 4 }}>
-              <Typography variant="h1" sx={{ fontSize: '3rem', mb: 2 }}>
-                🎉
+              <Typography variant="h5" sx={{ mb: 2 }}>
+                No upcoming tasks
               </Typography>
               <Typography variant="body1" color="text.secondary">
-                No upcoming tasks! You're all caught up.
+                You're all caught up.
               </Typography>
             </Box>
           ) : (
