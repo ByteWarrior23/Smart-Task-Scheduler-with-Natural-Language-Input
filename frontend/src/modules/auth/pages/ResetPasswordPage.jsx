@@ -109,7 +109,6 @@ export function ResetPasswordPage() {
           opacity: 0.1,
         }}
       >
-        🔐
       </motion.div>
 
       <motion.div
@@ -130,7 +129,6 @@ export function ResetPasswordPage() {
           opacity: 0.1,
         }}
       >
-        🔑
       </motion.div>
 
       <motion.div

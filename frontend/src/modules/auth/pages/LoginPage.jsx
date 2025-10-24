@@ -130,7 +130,6 @@ const LoginPage = () => {
           opacity: 0.1,
         }}
       >
-        📝
       </motion.div>
       
       <motion.div
@@ -151,7 +150,6 @@ const LoginPage = () => {
           opacity: 0.1,
         }}
       >
-        🎯
       </motion.div>
       
       <motion.div
@@ -172,7 +170,6 @@ const LoginPage = () => {
           opacity: 0.1,
         }}
       >
-        ⚡
       </motion.div>
 
       <motion.div

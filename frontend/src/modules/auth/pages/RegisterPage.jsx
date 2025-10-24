@@ -139,7 +139,6 @@ const RegisterPage = () => {
           opacity: 0.1,
         }}
       >
-        🚀
       </motion.div>
       
       <motion.div
@@ -160,7 +159,6 @@ const RegisterPage = () => {
           opacity: 0.1,
         }}
       >
-        ⭐
       </motion.div>
       
       <motion.div
@@ -181,7 +179,6 @@ const RegisterPage = () => {
           opacity: 0.1,
         }}
       >
-        🎯
       </motion.div>
 
       <motion.div
