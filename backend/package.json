@@ -28,7 +28,7 @@
     "natural": "^8.1.0",
     "node-cron": "^4.2.1",
     "node-fetch": "^3.3.2",
-    "node-wit": "^6.6.0",
+    "node-wit": "^4.0.0",
     "nodemailer": "^7.0.6",
     "prettier": "^3.6.2",
     "rrule": "^2.8.1",
