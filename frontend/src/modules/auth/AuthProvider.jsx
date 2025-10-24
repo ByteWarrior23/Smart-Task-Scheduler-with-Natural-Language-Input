@@ -14,6 +14,8 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const initAuth = async () => {
       const token = localStorage.getItem('tm_access_token');
+      const refreshToken = localStorage.getItem('tm_refresh_token');
+      
       if (token) {
         try {
           // Try to get user data
@@ -21,13 +23,19 @@ export const AuthProvider = ({ children }) => {
             setUser(userData);
           }
         } catch (error) {
-          // Token might be expired, try to refresh
-          try {
-            await refreshTokenMutation.mutateAsync();
-          } catch (refreshError) {
-            // Refresh failed, clear auth
+          // Token might be expired, try to refresh only if we have a refresh token
+          if (refreshToken) {
+            try {
+              await refreshTokenMutation.mutateAsync();
+            } catch (refreshError) {
+              // Refresh failed, clear auth
+              localStorage.removeItem('tm_access_token');
+              localStorage.removeItem('tm_refresh_token');
+              setUser(null);
+            }
+          } else {
+            // No refresh token available, clear auth
             localStorage.removeItem('tm_access_token');
-            localStorage.removeItem('tm_refresh_token');
             setUser(null);
           }
         }

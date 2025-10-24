@@ -60,6 +60,9 @@ export const useAuthQueries = () => {
     return useMutation({
       mutationFn: async () => {
         const refreshToken = localStorage.getItem('tm_refresh_token');
+        if (!refreshToken) {
+          throw new Error('No refresh token available');
+        }
         const response = await authApi.refresh(refreshToken);
         return response.data;
       },
