@@ -14,4 +14,19 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
+  // Start backend and frontend automatically for E2E
+  webServer: [
+    {
+      command: 'npm start --prefix backend',
+      port: 3000,
+      timeout: 120_000,
+      reuseExistingServer: true,
+    },
+    {
+      command: 'npm run dev --prefix frontend',
+      port: 5173,
+      timeout: 120_000,
+      reuseExistingServer: true,
+    },
+  ],
 });
