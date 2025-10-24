@@ -14,6 +14,12 @@ const requiredEnvVars = [
 // Optional environment variables (with defaults)
 const optionalEnvVars = {
     'NODE_ENV': 'development',
+    'FRONTEND_URL': 'http://localhost:5173',
+    'JWT_RESET_TOKEN': '',
+    // GitHub OAuth
+    'GITHUB_CLIENT_ID': '',
+    'GITHUB_CLIENT_SECRET': '',
+    'GITHUB_REDIRECT_URI': 'http://localhost:3000/api/v1/auth/oauth/github/callback',
     'EMAIL_HOST': '',
     'EMAIL_PORT': '587',
     'EMAIL_USER': '',

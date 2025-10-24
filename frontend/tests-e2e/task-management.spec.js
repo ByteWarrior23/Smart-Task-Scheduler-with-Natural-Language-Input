@@ -28,9 +28,8 @@ test.describe('Authentication Flow', () => {
     
     await page.click('[data-testid="register-button"]');
     
-    // Should redirect to tasks page after successful registration
-    await expect(page).toHaveURL('/tasks');
-    await expect(page.locator('[data-testid="user-menu"]')).toBeVisible();
+    // Should redirect to dashboard after successful registration
+    await expect(page).toHaveURL('/login');
   });
 
   test('should login with existing user', async ({ page }) => {
@@ -41,9 +40,8 @@ test.describe('Authentication Flow', () => {
     
     await page.click('[data-testid="login-button"]');
     
-    // Should redirect to tasks page after successful login
-    await expect(page).toHaveURL('/tasks');
-    await expect(page.locator('[data-testid="user-menu"]')).toBeVisible();
+    // Should redirect to dashboard after successful login
+    await expect(page).toHaveURL('/dashboard');
   });
 
   test('should logout user', async ({ page }) => {
@@ -53,7 +51,7 @@ test.describe('Authentication Flow', () => {
     await page.fill('[data-testid="password-input"]', testUser.password);
     await page.click('[data-testid="login-button"]');
     
-    // Logout
+    // Navigate to dashboard then logout
     await page.click('[data-testid="user-menu"]');
     await page.click('[data-testid="logout-button"]');
     
@@ -69,7 +67,8 @@ test.describe('Task Management', () => {
     await page.fill('[data-testid="username-input"]', testUser.username);
     await page.fill('[data-testid="password-input"]', testUser.password);
     await page.click('[data-testid="login-button"]');
-    await expect(page).toHaveURL('/tasks');
+    await expect(page).toHaveURL('/dashboard');
+    await page.goto('/tasks');
   });
 
   test('should create a new task', async ({ page }) => {
@@ -177,7 +176,8 @@ test.describe('Voice Input', () => {
     await page.fill('[data-testid="username-input"]', testUser.username);
     await page.fill('[data-testid="password-input"]', testUser.password);
     await page.click('[data-testid="login-button"]');
-    await expect(page).toHaveURL('/tasks');
+    await expect(page).toHaveURL('/dashboard');
+    await page.goto('/tasks');
   });
 
   test('should navigate to voice page', async ({ page }) => {
@@ -208,7 +208,8 @@ test.describe('Dashboard', () => {
     await page.fill('[data-testid="username-input"]', testUser.username);
     await page.fill('[data-testid="password-input"]', testUser.password);
     await page.click('[data-testid="login-button"]');
-    await expect(page).toHaveURL('/tasks');
+    await expect(page).toHaveURL('/dashboard');
+    await page.goto('/tasks');
   });
 
   test('should navigate to dashboard', async ({ page }) => {

@@ -6,13 +6,25 @@ import ApiResponse from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 
 // Generate access + refresh tokens
-const generateAccessTokenandRefreshToken = async (userId) => {
+const generateAccessTokenandRefreshToken = async (userId, existingRefreshTokens = null) => {
   const user = await User.findById(userId);
   if (!user) throw new ApiError(404, "User not found");
 
   const accessToken = user.generateAccessToken();
   const refreshToken = user.generateRefreshToken();
-  user.refreshToken = refreshToken;
+  // Multi-device: append refresh token, ensure uniqueness and cap list size
+  const nextRefreshTokens = Array.isArray(existingRefreshTokens)
+    ? existingRefreshTokens
+    : Array.isArray(user.refreshTokens)
+      ? user.refreshTokens
+      : [];
+  if (!nextRefreshTokens.includes(refreshToken)) {
+    nextRefreshTokens.push(refreshToken);
+  }
+  // Keep only latest 5 tokens per user for safety
+  user.refreshTokens = nextRefreshTokens.slice(-5);
+  user.lastLoginAt = new Date();
+  user.loginCount = (user.loginCount || 0) + 1;
 
   await user.save({ validateBeforeSave: false });
   return { accessToken, refreshToken };
@@ -29,7 +41,7 @@ const registerUser = asyncHandler(async (req, res) => {
   const normalizedEmail = email.trim().toLowerCase();
 
   const existingUser = await User.findOne({ $or: [{ username: normalizedUsername }, { email: normalizedEmail }] });
-  if (existingUser) throw new ApiError(400, "User already exists");
+  if (existingUser) throw new ApiError(400, "User already exists with this username or email");
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -38,6 +50,8 @@ const registerUser = asyncHandler(async (req, res) => {
     email: normalizedEmail,
     fullname,
     password: hashedPassword,
+    authProvider: 'local',
+    emailVerified: false,
   });
 
   const safeUser = {
@@ -54,14 +68,18 @@ const registerUser = asyncHandler(async (req, res) => {
 const loginUser = asyncHandler(async (req, res) => {
   const { username, email, password } = req.body;
 
-  const normalizedUsername = username?.trim();
-  const normalizedEmail = email?.trim().toLowerCase();
+  const normalizedUsername = typeof username === 'string' ? username.trim() : undefined;
+  const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : undefined;
 
-  const user = await User.findOne({ $or: [{ username: normalizedUsername }, { email: normalizedEmail }] });
-  if (!user) throw new ApiError(400, "User not found");
+  if (!normalizedUsername && !normalizedEmail) {
+    throw new ApiError(400, "Username or email is required");
+  }
+  const query = normalizedEmail ? { email: normalizedEmail } : { username: normalizedUsername };
+  const user = await User.findOne(query);
+  if (!user) throw new ApiError(400, "User not found. Please check your username/email.");
 
   const isPasswordCorrect = await bcrypt.compare(password, user.password);
-  if (!isPasswordCorrect) throw new ApiError(400, "Invalid password");
+  if (!isPasswordCorrect) throw new ApiError(400, "Invalid password. Please try again.");
 
   const { accessToken, refreshToken } = await generateAccessTokenandRefreshToken(user._id);
 
@@ -82,8 +100,8 @@ const logoutUser = asyncHandler(async (req, res) => {
   const user = await User.findById(userId);
   if (!user) throw new ApiError(404, "User not found");
 
-  // Clear refresh token
-  user.refreshToken = null;
+  // Clear all refresh tokens for this device-less logout
+  user.refreshTokens = [];
   await user.save({ validateBeforeSave: false });
 
   return res.status(200).json(new ApiResponse(200, "User logged out successfully", {
@@ -141,12 +159,14 @@ const refreshSession = asyncHandler(async (req, res) => {
     }
     
     try {
-        const decoded = jwt.verify(incomingRefreshToken, process.env.JWT_REFRESH_TOKEN);
+        const decoded = jwt.verify(incomingRefreshToken, process.env.JWT_REFRESH_TOKEN_SECRET);
         const user = await User.findById(decoded._id)
-        if(!user || user.refreshToken !== incomingRefreshToken){
+        if(!user || !Array.isArray(user.refreshTokens) || !user.refreshTokens.includes(incomingRefreshToken)){
             throw new ApiError(401, "Invalid refresh token")
         }
-        const { accessToken, refreshToken: newRefreshToken } = await generateAccessTokenandRefreshToken(user.id)
+        // rotate token: remove old, add new
+        const currentTokens = (user.refreshTokens || []).filter(t => t !== incomingRefreshToken);
+        const { accessToken, refreshToken: newRefreshToken } = await generateAccessTokenandRefreshToken(user.id, currentTokens)
 
         const options = {
             httpOnly : true,
@@ -177,7 +197,7 @@ const refreshSession = asyncHandler(async (req, res) => {
 
 const getMe = asyncHandler(async (req, res) => {
     const userId = req.user.id;
-    const user = await User.findById(userId).select("-password -refreshToken");
+    const user = await User.findById(userId).select("-password -refreshTokens");
     if (!user) throw new ApiError(404, "User not found");
 
     return res.status(200).json(new ApiResponse(200, "User fetched successfully", user));
@@ -194,7 +214,7 @@ const changePassword = asyncHandler(async (req, res) => {
     const isPasswordCorrect = await user.isPasswordCorrect(currentPassword);
     if (!isPasswordCorrect) throw new ApiError(400, "Current password is incorrect");
     user.password = await bcrypt.hash(newPassword, 10);
-    user.refreshToken = null;
+    user.refreshTokens = [];
     await user.save({ validateBeforeSave: false });
     return res.status(200).json(new ApiResponse(200, "Password changed successfully"));
 });

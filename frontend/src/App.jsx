@@ -10,7 +10,7 @@ import { AppThemeProvider } from './shared/theme/theme.jsx';
 import { AuthProvider, useAuth } from './modules/auth/AuthProvider';
 
 // Pages - Import with error handling
-let LoginPage, RegisterPage, DashboardPage, TasksPage, VoicePage, AdminPage, JobsPage;
+let LoginPage, RegisterPage, DashboardPage, TasksPage, VoicePage, AdminPage, JobsPage, OAuthCallback;
 
 try {
   LoginPage = React.lazy(() => import('./modules/auth/pages/LoginPage'));
@@ -20,6 +20,7 @@ try {
   VoicePage = React.lazy(() => import('./modules/voice/pages/VoicePage'));
   AdminPage = React.lazy(() => import('./modules/admin/pages/AdminPage'));
   JobsPage = React.lazy(() => import('./modules/jobs/pages/JobsPage'));
+  OAuthCallback = React.lazy(() => import('./modules/auth/pages/OAuthCallback'));
 } catch (error) {
   console.warn('Some pages failed to load:', error);
 }
@@ -313,6 +314,14 @@ const App = () => {
                         {RegisterPage ? <RegisterPage /> : <LoadingSpinner />}
                       </React.Suspense>
                     } 
+                  />
+                  <Route 
+                    path="/oauth/callback"
+                    element={
+                      <React.Suspense fallback={<LoadingSpinner />}>
+                        {OAuthCallback ? <OAuthCallback /> : <LoadingSpinner />}
+                      </React.Suspense>
+                    }
                   />
                   
                   {/* Protected Routes */}

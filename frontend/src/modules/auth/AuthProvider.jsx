@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuthQueries } from '../../shared/hooks/useAuthQueries';
+import { getAuthTokens, setAuthTokens, clearAuthTokens } from '../../shared/api/client';
 
 const AuthContext = createContext();
 
@@ -13,21 +14,21 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const initAuth = async () => {
-      const token = localStorage.getItem('accessToken');
-      if (token) {
+      const tokens = getAuthTokens();
+      if (tokens?.accessToken) {
         try {
-          // Try to get user data
           if (userData) {
             setUser(userData);
           }
         } catch (error) {
-          // Token might be expired, try to refresh
           try {
-            await refreshTokenMutation.mutateAsync();
+            const res = await refreshTokenMutation.mutateAsync();
+            const data = res?.data || res;
+            if (data?.accessToken) {
+              setAuthTokens({ accessToken: data.accessToken, refreshToken: data.refreshToken });
+            }
           } catch (refreshError) {
-            // Refresh failed, clear auth
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
+            clearAuthTokens();
             setUser(null);
           }
         }
@@ -44,8 +45,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
+    clearAuthTokens();
     setUser(null);
   };
 

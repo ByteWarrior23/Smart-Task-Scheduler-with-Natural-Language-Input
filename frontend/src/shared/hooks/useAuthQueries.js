@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { authApi } from '../api/api';
+import { setAuthTokens, clearAuthTokens } from '../api/client';
 
 // Authentication Queries
 export const useAuthQueries = () => {
@@ -11,11 +12,17 @@ export const useAuthQueries = () => {
         const response = await authApi.login(credentials);
         return response.data;
       },
-      onSuccess: (data) => {
-        // Store tokens
-        localStorage.setItem('accessToken', data.accessToken);
-        localStorage.setItem('refreshToken', data.refreshToken);
-        queryClient.setQueryData(['user'], data.safeUser);
+      onSuccess: (wrapped) => {
+        // Backend wraps response in ApiResponse
+        const data = wrapped?.data || wrapped;
+        if (data?.accessToken) {
+          setAuthTokens({ accessToken: data.accessToken, refreshToken: data.refreshToken });
+        }
+        if (data?.safeUser) {
+          queryClient.setQueryData(['user'], data.safeUser);
+        } else if (wrapped?.data?.safeUser) {
+          queryClient.setQueryData(['user'], wrapped.data.safeUser);
+        }
       },
     });
   };
@@ -32,14 +39,10 @@ export const useAuthQueries = () => {
   const useLogout = () => {
     return useMutation({
       mutationFn: async () => {
-        const refreshToken = localStorage.getItem('refreshToken');
-        if (refreshToken) {
-          await authApi.logout();
-        }
+        await authApi.logout();
       },
       onSuccess: () => {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
+        clearAuthTokens();
         queryClient.clear();
       },
     });
@@ -50,22 +53,23 @@ export const useAuthQueries = () => {
       queryKey: ['user'],
       queryFn: async () => {
         const response = await authApi.getMe();
-        return response.data;
+        return response.data?.data ?? response.data;
       },
-      enabled: !!localStorage.getItem('accessToken'),
+      enabled: !!(typeof window !== 'undefined' && localStorage.getItem('tm_access_token')),
     });
   };
 
   const useRefreshToken = () => {
     return useMutation({
       mutationFn: async () => {
-        const refreshToken = localStorage.getItem('refreshToken');
-        const response = await authApi.refresh(refreshToken);
+        const response = await authApi.refresh(undefined);
         return response.data;
       },
-      onSuccess: (data) => {
-        localStorage.setItem('accessToken', data.accessToken);
-        localStorage.setItem('refreshToken', data.refreshToken);
+      onSuccess: (wrapped) => {
+        const data = wrapped?.data || wrapped;
+        if (data?.accessToken) {
+          setAuthTokens({ accessToken: data.accessToken, refreshToken: data.refreshToken });
+        }
       },
     });
   };

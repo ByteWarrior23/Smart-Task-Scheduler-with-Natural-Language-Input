@@ -7,8 +7,8 @@ Create a .env file in the root directory:
 MONGODB_URL=your_mongo_db_url
 
 # JWT Configuration  
-JWT_ACCESS_TOKEN=your_super_secret_access_token_key_here_make_it_long_and_secure
-JWT_REFRESH_TOKEN=your_super_secret_refresh_token_key_here_make_it_long_and_secure
+JWT_ACCESS_TOKEN_SECRET=your_super_secret_access_token_key_here_make_it_long_and_secure
+JWT_REFRESH_TOKEN_SECRET=your_super_secret_refresh_token_key_here_make_it_long_and_secure
 ACCESS_TOKEN_EXPIRES_IN=15m
 REFRESH_TOKEN_EXPIRES_IN=7d
 
@@ -19,6 +19,12 @@ NODE_ENV=development
 # Email Configuration (Optional)
 EMAIL_USER=your_email@gmail.com
 EMAIL_PASS=your_app_password_here
+
+# OAuth (optional)
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+GITHUB_REDIRECT_URI=http://localhost:3000/api/v1/auth/oauth/github/callback
+FRONTEND_URL=http://localhost:5173
 
 # Step 2: Start the Server
 bash

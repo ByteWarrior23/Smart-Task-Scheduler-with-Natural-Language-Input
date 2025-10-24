@@ -75,7 +75,7 @@ const RegisterPage = () => {
     setIsLoading(true);
     try {
       await registerMutation.mutateAsync(formData);
-      navigate('/login');
+      navigate('/login', { replace: true });
     } catch (error) {
       setErrors({ general: error.response?.data?.message || 'Registration failed. Please try again.' });
     } finally {
@@ -258,6 +258,7 @@ const RegisterPage = () => {
                   transition={{ delay: 0.3 }}
                 >
                   <TextField
+                    inputProps={{ 'data-testid': 'username-input' }}
                     fullWidth
                     label="Username"
                     value={formData.username}
@@ -293,6 +294,7 @@ const RegisterPage = () => {
                   transition={{ delay: 0.4 }}
                 >
                   <TextField
+                    inputProps={{ 'data-testid': 'email-input' }}
                     fullWidth
                     label="Email"
                     type="email"
@@ -329,6 +331,7 @@ const RegisterPage = () => {
                   transition={{ delay: 0.5 }}
                 >
                   <TextField
+                    inputProps={{ 'data-testid': 'fullname-input' }}
                     fullWidth
                     label="Full Name"
                     value={formData.fullname}
@@ -364,6 +367,7 @@ const RegisterPage = () => {
                   transition={{ delay: 0.6 }}
                 >
                   <TextField
+                    inputProps={{ 'data-testid': 'password-input' }}
                     fullWidth
                     label="Password"
                     type={showPassword ? 'text' : 'password'}
@@ -410,6 +414,7 @@ const RegisterPage = () => {
                   transition={{ delay: 0.7 }}
                 >
                   <TextField
+                    inputProps={{ 'data-testid': 'confirm-password-input' }}
                     fullWidth
                     label="Confirm Password"
                     type={showConfirmPassword ? 'text' : 'password'}
@@ -456,6 +461,7 @@ const RegisterPage = () => {
                   transition={{ delay: 0.8 }}
                 >
                   <Button
+                    data-testid="register-button"
                     type="submit"
                     fullWidth
                     variant="contained"

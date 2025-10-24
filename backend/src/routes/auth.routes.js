@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { githubLoginStart, githubOAuthCallback } from "../services/oauth/github.oauth.js";
 import {
   registerUser,
   loginUser,
@@ -19,6 +20,10 @@ const router = Router();
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.post("/refresh", refreshSession);
+
+// OAuth - GitHub
+router.get("/oauth/github", githubLoginStart);
+router.get("/oauth/github/callback", githubOAuthCallback);
 
 // Protected
 router.post("/logout", verifyJWT, logoutUser);

@@ -19,7 +19,7 @@ export function clearAuthTokens() {
   localStorage.removeItem(REFRESH_TOKEN_KEY);
 }
 
-export const api = axios.create({ baseURL: '/' });
+export const api = axios.create({ baseURL: '/', withCredentials: true });
 
 api.interceptors.request.use((config) => {
   const tokens = getAuthTokens();

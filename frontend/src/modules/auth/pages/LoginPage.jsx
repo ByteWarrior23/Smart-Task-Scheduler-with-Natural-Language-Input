@@ -66,7 +66,7 @@ const LoginPage = () => {
     setIsLoading(true);
     try {
       await loginMutation.mutateAsync(formData);
-      navigate('/');
+      navigate('/dashboard', { replace: true });
     } catch (error) {
       setErrors({ general: error.response?.data?.message || 'Login failed. Please try again.' });
     } finally {
@@ -75,8 +75,10 @@ const LoginPage = () => {
   };
 
   const handleSocialLogin = (provider) => {
-    // Mock social login
-    console.log(`Login with ${provider}`);
+    if (provider === 'GitHub') {
+      const params = new URLSearchParams({ r: '/dashboard' });
+      window.location.href = `/api/v1/auth/oauth/github?${params.toString()}`;
+    }
   };
 
   return (
@@ -249,6 +251,7 @@ const LoginPage = () => {
                   transition={{ delay: 0.3 }}
                 >
                   <TextField
+                    inputProps={{ 'data-testid': 'username-input' }}
                     fullWidth
                     label="Username or Email"
                     value={formData.username}
@@ -284,6 +287,7 @@ const LoginPage = () => {
                   transition={{ delay: 0.4 }}
                 >
                   <TextField
+                    inputProps={{ 'data-testid': 'password-input' }}
                     fullWidth
                     label="Password"
                     type={showPassword ? 'text' : 'password'}
@@ -330,6 +334,7 @@ const LoginPage = () => {
                   transition={{ delay: 0.5 }}
                 >
                   <Button
+                    data-testid="login-button"
                     type="submit"
                     fullWidth
                     variant="contained"
