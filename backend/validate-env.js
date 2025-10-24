@@ -20,7 +20,10 @@ const optionalEnvVars = {
     'EMAIL_PASS': '',
     'WIT_API_KEY': '',
     'MICROSOFT_SPEECH_KEY': '',
-    'MICROSOFT_SPEECH_REGION': ''
+    'MICROSOFT_SPEECH_REGION': '',
+    // Used by forgot/reset password; provide a default for development
+    'JWT_RESET_TOKEN': process.env.JWT_ACCESS_TOKEN || 'dev-reset-token',
+    'FRONTEND_URL': 'http://localhost:5173'
 };
 
 // Validate required environment variables

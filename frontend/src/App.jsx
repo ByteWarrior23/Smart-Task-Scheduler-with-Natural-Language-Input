@@ -86,7 +86,7 @@ const ErrorFallback = ({ error, resetError }) => (
     }}
   >
     <Typography variant="h4" sx={{ mb: 2 }}>
-      ⚠️ Something went wrong
+      Something went wrong
     </Typography>
     <Typography variant="body1" sx={{ mb: 4, opacity: 0.8 }}>
       {error?.message || 'An unexpected error occurred'}
@@ -176,7 +176,7 @@ const WelcomePage = () => {
             fontSize: { xs: '2.5rem', md: '3.5rem' },
           }}
         >
-          🎉 TaskMaster
+          TaskMaster
         </Typography>
         
         <Typography 
@@ -381,7 +381,7 @@ const App = () => {
                         }}
                       >
                         <Typography variant="h1" sx={{ fontSize: '8rem', mb: 2 }}>
-                          🚫
+                          404
                         </Typography>
                         <Typography variant="h3" className="gradient-text" sx={{ mb: 2 }}>
                           Page Not Found
