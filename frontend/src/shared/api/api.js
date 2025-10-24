@@ -63,6 +63,36 @@ export const taskApi = {
   
   // Email
   sendWelcomeEmail: (email, emailConfig) => api.post('/api/v1/tasks/send-welcome-email', { email, emailConfig }),
+  
+  // Analytics and Statistics
+  getAnalytics: () => api.get('/api/v1/tasks/analytics'),
+  
+  // Bulk Operations
+  bulkUpdate: (taskIds, updates) => api.patch('/api/v1/tasks/bulk-update', { taskIds, updates }),
+  bulkDelete: (taskIds) => api.delete('/api/v1/tasks/bulk-delete', { data: { taskIds } }),
+  bulkArchive: (taskIds) => api.patch('/api/v1/tasks/bulk-archive', { taskIds }),
+  
+  // Advanced Features
+  getTimeSlots: (duration, window = 7) => api.get('/api/v1/tasks/time-slots', { 
+    params: { duration, window } 
+  }),
+  detectConflicts: (deadline, duration) => api.post('/api/v1/tasks/detect-conflicts', { 
+    deadline, duration 
+  }),
+  
+  // Export/Import
+  exportTasks: (format = 'json') => api.get('/api/v1/tasks/export', { 
+    params: { format },
+    responseType: 'blob'
+  }),
+  importTasks: (file, format = 'json') => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('format', format);
+    return api.post('/api/v1/tasks/import', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
 };
 
 // ============================================================================

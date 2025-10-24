@@ -1,369 +1,330 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { taskApi } from '../api/api';
 
-// Query keys
-export const taskKeys = {
-  all: ['tasks'],
-  lists: () => [...taskKeys.all, 'list'],
-  list: (filters) => [...taskKeys.lists(), { filters }],
-  details: () => [...taskKeys.all, 'detail'],
-  detail: (id) => [...taskKeys.details(), id],
-  recurring: () => [...taskKeys.all, 'recurring'],
-  recurringInstances: (id) => [...taskKeys.recurring(), id, 'instances'],
-  comments: (id) => [...taskKeys.all, 'comments', id],
-  stats: () => [...taskKeys.all, 'stats'],
+// Task Queries
+export const useTaskQueries = () => {
+  const queryClient = useQueryClient();
+
+  // Get all tasks
+  const useGetTasks = (params = {}) => {
+    return useQuery({
+      queryKey: ['tasks', 'list', params],
+      queryFn: () => taskApi.getAll(params),
+      staleTime: 30 * 1000, // 30 seconds
+    });
+  };
+
+  // Get task by ID
+  const useGetTask = (taskId) => {
+    return useQuery({
+      queryKey: ['tasks', 'detail', taskId],
+      queryFn: () => taskApi.getById(taskId),
+      enabled: !!taskId,
+    });
+  };
+
+  // Search tasks
+  const useSearchTasks = (query) => {
+    return useQuery({
+      queryKey: ['tasks', 'search', query],
+      queryFn: () => taskApi.search(query),
+      enabled: !!query && query.length > 2,
+    });
+  };
+
+  // Filter tasks by category
+  const useFilterByCategory = (category) => {
+    return useQuery({
+      queryKey: ['tasks', 'category', category],
+      queryFn: () => taskApi.filterByCategory(category),
+      enabled: !!category,
+    });
+  };
+
+  // Get recurring tasks
+  const useGetRecurringTasks = () => {
+    return useQuery({
+      queryKey: ['tasks', 'recurring'],
+      queryFn: taskApi.getRecurring,
+    });
+  };
+
+  // Get recurring task instances
+  const useGetRecurringInstances = (taskId) => {
+    return useQuery({
+      queryKey: ['tasks', 'recurring', 'instances', taskId],
+      queryFn: () => taskApi.getRecurringInstances(taskId),
+      enabled: !!taskId,
+    });
+  };
+
+  // Get reminder stats
+  const useGetReminderStats = () => {
+    return useQuery({
+      queryKey: ['tasks', 'reminder-stats'],
+      queryFn: taskApi.getReminderStats,
+      refetchInterval: 60 * 1000, // Refetch every minute
+    });
+  };
+
+  // Get analytics
+  const useGetAnalytics = () => {
+    return useQuery({
+      queryKey: ['tasks', 'analytics'],
+      queryFn: taskApi.getAnalytics,
+    });
+  };
+
+  // Get time slots
+  const useGetTimeSlots = (duration, window = 7) => {
+    return useQuery({
+      queryKey: ['tasks', 'time-slots', duration, window],
+      queryFn: () => taskApi.getTimeSlots(duration, window),
+      enabled: !!duration,
+    });
+  };
+
+  // Create task mutation
+  const useCreateTask = () => {
+    return useMutation({
+      mutationFn: taskApi.create,
+      onSuccess: () => {
+        queryClient.invalidateQueries(['tasks']);
+      },
+    });
+  };
+
+  // Update task mutation
+  const useUpdateTask = () => {
+    return useMutation({
+      mutationFn: ({ taskId, data }) => taskApi.update(taskId, data),
+      onSuccess: (_, { taskId }) => {
+        queryClient.invalidateQueries(['tasks']);
+        queryClient.invalidateQueries(['tasks', 'detail', taskId]);
+      },
+    });
+  };
+
+  // Delete task mutation
+  const useDeleteTask = () => {
+    return useMutation({
+      mutationFn: taskApi.delete,
+      onSuccess: () => {
+        queryClient.invalidateQueries(['tasks']);
+      },
+    });
+  };
+
+  // Complete task mutation
+  const useCompleteTask = () => {
+    return useMutation({
+      mutationFn: taskApi.complete,
+      onSuccess: () => {
+        queryClient.invalidateQueries(['tasks']);
+      },
+    });
+  };
+
+  // Mark task as pending mutation
+  const usePendingTask = () => {
+    return useMutation({
+      mutationFn: taskApi.pending,
+      onSuccess: () => {
+        queryClient.invalidateQueries(['tasks']);
+      },
+    });
+  };
+
+  // Archive task mutation
+  const useArchiveTask = () => {
+    return useMutation({
+      mutationFn: taskApi.archive,
+      onSuccess: () => {
+        queryClient.invalidateQueries(['tasks']);
+      },
+    });
+  };
+
+  // Unarchive task mutation
+  const useUnarchiveTask = () => {
+    return useMutation({
+      mutationFn: taskApi.unarchive,
+      onSuccess: () => {
+        queryClient.invalidateQueries(['tasks']);
+      },
+    });
+  };
+
+  // Add comment mutation
+  const useAddComment = () => {
+    return useMutation({
+      mutationFn: ({ taskId, comment }) => taskApi.addComment(taskId, comment),
+      onSuccess: (_, { taskId }) => {
+        queryClient.invalidateQueries(['tasks', 'detail', taskId]);
+        queryClient.invalidateQueries(['tasks']);
+      },
+    });
+  };
+
+  // Get comments
+  const useGetComments = (taskId) => {
+    return useQuery({
+      queryKey: ['tasks', 'comments', taskId],
+      queryFn: () => taskApi.getComments(taskId),
+      enabled: !!taskId,
+    });
+  };
+
+  // Parse natural language mutation
+  const useParseNaturalLanguage = () => {
+    return useMutation({
+      mutationFn: taskApi.parseNaturalLanguage,
+    });
+  };
+
+  // Create recurring task mutation
+  const useCreateRecurringTask = () => {
+    return useMutation({
+      mutationFn: taskApi.createRecurring,
+      onSuccess: () => {
+        queryClient.invalidateQueries(['tasks', 'recurring']);
+        queryClient.invalidateQueries(['tasks']);
+      },
+    });
+  };
+
+  // Update recurring task mutation
+  const useUpdateRecurringTask = () => {
+    return useMutation({
+      mutationFn: ({ taskId, data }) => taskApi.updateRecurring(taskId, data),
+      onSuccess: () => {
+        queryClient.invalidateQueries(['tasks', 'recurring']);
+        queryClient.invalidateQueries(['tasks']);
+      },
+    });
+  };
+
+  // Delete recurring task mutation
+  const useDeleteRecurringTask = () => {
+    return useMutation({
+      mutationFn: ({ taskId, deleteType }) => taskApi.deleteRecurring(taskId, deleteType),
+      onSuccess: () => {
+        queryClient.invalidateQueries(['tasks', 'recurring']);
+        queryClient.invalidateQueries(['tasks']);
+      },
+    });
+  };
+
+  // Schedule reminder mutation
+  const useScheduleReminder = () => {
+    return useMutation({
+      mutationFn: ({ taskId, reminderTime }) => taskApi.scheduleReminder(taskId, reminderTime),
+      onSuccess: () => {
+        queryClient.invalidateQueries(['tasks', 'reminder-stats']);
+      },
+    });
+  };
+
+  // Check deadlines mutation
+  const useCheckDeadlines = () => {
+    return useMutation({
+      mutationFn: taskApi.checkDeadlines,
+    });
+  };
+
+  // Send welcome email mutation
+  const useSendWelcomeEmail = () => {
+    return useMutation({
+      mutationFn: ({ email, emailConfig }) => taskApi.sendWelcomeEmail(email, emailConfig),
+    });
+  };
+
+  // Bulk operations
+  const useBulkUpdate = () => {
+    return useMutation({
+      mutationFn: ({ taskIds, updates }) => taskApi.bulkUpdate(taskIds, updates),
+      onSuccess: () => {
+        queryClient.invalidateQueries(['tasks']);
+      },
+    });
+  };
+
+  const useBulkDelete = () => {
+    return useMutation({
+      mutationFn: taskApi.bulkDelete,
+      onSuccess: () => {
+        queryClient.invalidateQueries(['tasks']);
+      },
+    });
+  };
+
+  const useBulkArchive = () => {
+    return useMutation({
+      mutationFn: taskApi.bulkArchive,
+      onSuccess: () => {
+        queryClient.invalidateQueries(['tasks']);
+      },
+    });
+  };
+
+  // Detect conflicts mutation
+  const useDetectConflicts = () => {
+    return useMutation({
+      mutationFn: ({ deadline, duration }) => taskApi.detectConflicts(deadline, duration),
+    });
+  };
+
+  // Export tasks mutation
+  const useExportTasks = () => {
+    return useMutation({
+      mutationFn: (format) => taskApi.exportTasks(format),
+    });
+  };
+
+  // Import tasks mutation
+  const useImportTasks = () => {
+    return useMutation({
+      mutationFn: ({ file, format }) => taskApi.importTasks(file, format),
+      onSuccess: () => {
+        queryClient.invalidateQueries(['tasks']);
+      },
+    });
+  };
+
+  return {
+    // Queries
+    useGetTasks,
+    useGetTask,
+    useSearchTasks,
+    useFilterByCategory,
+    useGetRecurringTasks,
+    useGetRecurringInstances,
+    useGetReminderStats,
+    useGetAnalytics,
+    useGetTimeSlots,
+    useGetComments,
+    
+    // Mutations
+    useCreateTask,
+    useUpdateTask,
+    useDeleteTask,
+    useCompleteTask,
+    usePendingTask,
+    useArchiveTask,
+    useUnarchiveTask,
+    useAddComment,
+    useParseNaturalLanguage,
+    useCreateRecurringTask,
+    useUpdateRecurringTask,
+    useDeleteRecurringTask,
+    useScheduleReminder,
+    useCheckDeadlines,
+    useSendWelcomeEmail,
+    useBulkUpdate,
+    useBulkDelete,
+    useBulkArchive,
+    useDetectConflicts,
+    useExportTasks,
+    useImportTasks,
+  };
 };
-
-// ============================================================================
-// QUERIES
-// ============================================================================
-
-export function useTasksQuery(options = {}) {
-  return useQuery({
-    queryKey: taskKeys.list(options.filters),
-    queryFn: async () => {
-      const response = await taskApi.getAll(options.filters);
-      return response.data.data;
-    },
-    staleTime: 30000, // 30 seconds
-    ...options,
-  });
-}
-
-export function useTaskQuery(taskId, options = {}) {
-  return useQuery({
-    queryKey: taskKeys.detail(taskId),
-    queryFn: async () => {
-      const response = await taskApi.getById(taskId);
-      return response.data.data;
-    },
-    enabled: !!taskId,
-    staleTime: 60000, // 1 minute
-    ...options,
-  });
-}
-
-export function useRecurringTasksQuery(options = {}) {
-  return useQuery({
-    queryKey: taskKeys.recurring(),
-    queryFn: async () => {
-      const response = await taskApi.getRecurring();
-      return response.data.data;
-    },
-    staleTime: 60000,
-    ...options,
-  });
-}
-
-export function useRecurringInstancesQuery(taskId, options = {}) {
-  return useQuery({
-    queryKey: taskKeys.recurringInstances(taskId),
-    queryFn: async () => {
-      const response = await taskApi.getRecurringInstances(taskId);
-      return response.data.data;
-    },
-    enabled: !!taskId,
-    staleTime: 60000,
-    ...options,
-  });
-}
-
-export function useTaskCommentsQuery(taskId, options = {}) {
-  return useQuery({
-    queryKey: taskKeys.comments(taskId),
-    queryFn: async () => {
-      const response = await taskApi.getComments(taskId);
-      return response.data.data;
-    },
-    enabled: !!taskId,
-    staleTime: 30000,
-    ...options,
-  });
-}
-
-export function useReminderStatsQuery(options = {}) {
-  return useQuery({
-    queryKey: taskKeys.stats(),
-    queryFn: async () => {
-      const response = await taskApi.getReminderStats();
-      return response.data.data;
-    },
-    staleTime: 60000,
-    ...options,
-  });
-}
-
-export function useSearchTasksQuery(query, options = {}) {
-  return useQuery({
-    queryKey: [...taskKeys.lists(), 'search', query],
-    queryFn: async () => {
-      const response = await taskApi.search(query);
-      return response.data.data;
-    },
-    enabled: !!query && query.length > 0,
-    staleTime: 30000,
-    ...options,
-  });
-}
-
-// ============================================================================
-// MUTATIONS
-// ============================================================================
-
-export function useCreateTaskMutation(options = {}) {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (data) => taskApi.create(data),
-    onSuccess: (response) => {
-      // Invalidate tasks list to refetch
-      queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
-      options.onSuccess?.(response.data.data);
-    },
-    onError: (error) => {
-      options.onError?.(error);
-    },
-  });
-}
-
-export function useUpdateTaskMutation(options = {}) {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: ({ taskId, data }) => taskApi.update(taskId, data),
-    onMutate: async ({ taskId, data }) => {
-      // Cancel outgoing refetches
-      await queryClient.cancelQueries({ queryKey: taskKeys.detail(taskId) });
-      
-      // Snapshot previous value
-      const previousTask = queryClient.getQueryData(taskKeys.detail(taskId));
-      
-      // Optimistically update
-      if (previousTask) {
-        queryClient.setQueryData(taskKeys.detail(taskId), {
-          ...previousTask,
-          ...data,
-        });
-      }
-      
-      return { previousTask };
-    },
-    onError: (err, { taskId }, context) => {
-      // Rollback on error
-      if (context?.previousTask) {
-        queryClient.setQueryData(taskKeys.detail(taskId), context.previousTask);
-      }
-      options.onError?.(err);
-    },
-    onSuccess: (response, { taskId }) => {
-      queryClient.setQueryData(taskKeys.detail(taskId), response.data.data);
-      queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
-      options.onSuccess?.(response.data.data);
-    },
-  });
-}
-
-export function useDeleteTaskMutation(options = {}) {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (taskId) => taskApi.delete(taskId),
-    onSuccess: (response, taskId) => {
-      queryClient.removeQueries({ queryKey: taskKeys.detail(taskId) });
-      queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
-      options.onSuccess?.(response.data);
-    },
-    onError: (error) => {
-      options.onError?.(error);
-    },
-  });
-}
-
-export function useCompleteTaskMutation(options = {}) {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (taskId) => taskApi.complete(taskId),
-    onMutate: async (taskId) => {
-      await queryClient.cancelQueries({ queryKey: taskKeys.detail(taskId) });
-      const previousTask = queryClient.getQueryData(taskKeys.detail(taskId));
-      
-      if (previousTask) {
-        queryClient.setQueryData(taskKeys.detail(taskId), {
-          ...previousTask,
-          status: 'completed',
-        });
-      }
-      
-      return { previousTask };
-    },
-    onError: (err, taskId, context) => {
-      if (context?.previousTask) {
-        queryClient.setQueryData(taskKeys.detail(taskId), context.previousTask);
-      }
-      options.onError?.(err);
-    },
-    onSuccess: (response, taskId) => {
-      queryClient.setQueryData(taskKeys.detail(taskId), response.data.data);
-      queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
-      options.onSuccess?.(response.data.data);
-    },
-  });
-}
-
-export function usePendingTaskMutation(options = {}) {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (taskId) => taskApi.pending(taskId),
-    onMutate: async (taskId) => {
-      await queryClient.cancelQueries({ queryKey: taskKeys.detail(taskId) });
-      const previousTask = queryClient.getQueryData(taskKeys.detail(taskId));
-      
-      if (previousTask) {
-        queryClient.setQueryData(taskKeys.detail(taskId), {
-          ...previousTask,
-          status: 'pending',
-        });
-      }
-      
-      return { previousTask };
-    },
-    onError: (err, taskId, context) => {
-      if (context?.previousTask) {
-        queryClient.setQueryData(taskKeys.detail(taskId), context.previousTask);
-      }
-      options.onError?.(err);
-    },
-    onSuccess: (response, taskId) => {
-      queryClient.setQueryData(taskKeys.detail(taskId), response.data.data);
-      queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
-      options.onSuccess?.(response.data.data);
-    },
-  });
-}
-
-export function useArchiveTaskMutation(options = {}) {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (taskId) => taskApi.archive(taskId),
-    onSuccess: (response, taskId) => {
-      queryClient.setQueryData(taskKeys.detail(taskId), response.data.data);
-      queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
-      options.onSuccess?.(response.data.data);
-    },
-    onError: (error) => {
-      options.onError?.(error);
-    },
-  });
-}
-
-export function useUnarchiveTaskMutation(options = {}) {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (taskId) => taskApi.unarchive(taskId),
-    onSuccess: (response, taskId) => {
-      queryClient.setQueryData(taskKeys.detail(taskId), response.data.data);
-      queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
-      options.onSuccess?.(response.data.data);
-    },
-    onError: (error) => {
-      options.onError?.(error);
-    },
-  });
-}
-
-export function useAddCommentMutation(options = {}) {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: ({ taskId, comment }) => taskApi.addComment(taskId, comment),
-    onSuccess: (response, { taskId }) => {
-      queryClient.invalidateQueries({ queryKey: taskKeys.comments(taskId) });
-      queryClient.invalidateQueries({ queryKey: taskKeys.detail(taskId) });
-      options.onSuccess?.(response.data.data);
-    },
-    onError: (error) => {
-      options.onError?.(error);
-    },
-  });
-}
-
-export function useCreateRecurringTaskMutation(options = {}) {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (data) => taskApi.createRecurring(data),
-    onSuccess: (response) => {
-      queryClient.invalidateQueries({ queryKey: taskKeys.recurring() });
-      queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
-      options.onSuccess?.(response.data.data);
-    },
-    onError: (error) => {
-      options.onError?.(error);
-    },
-  });
-}
-
-export function useUpdateRecurringTaskMutation(options = {}) {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: ({ taskId, data }) => taskApi.updateRecurring(taskId, data),
-    onSuccess: (response, { taskId }) => {
-      queryClient.invalidateQueries({ queryKey: taskKeys.recurring() });
-      queryClient.invalidateQueries({ queryKey: taskKeys.recurringInstances(taskId) });
-      queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
-      options.onSuccess?.(response.data.data);
-    },
-    onError: (error) => {
-      options.onError?.(error);
-    },
-  });
-}
-
-export function useDeleteRecurringTaskMutation(options = {}) {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: ({ taskId, deleteType }) => taskApi.deleteRecurring(taskId, deleteType),
-    onSuccess: (response, { taskId }) => {
-      queryClient.invalidateQueries({ queryKey: taskKeys.recurring() });
-      queryClient.invalidateQueries({ queryKey: taskKeys.recurringInstances(taskId) });
-      queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
-      options.onSuccess?.(response.data.data);
-    },
-    onError: (error) => {
-      options.onError?.(error);
-    },
-  });
-}
-
-export function useScheduleReminderMutation(options = {}) {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: ({ taskId, reminderTime }) => taskApi.scheduleReminder(taskId, reminderTime),
-    onSuccess: (response) => {
-      queryClient.invalidateQueries({ queryKey: taskKeys.stats() });
-      options.onSuccess?.(response.data.data);
-    },
-    onError: (error) => {
-      options.onError?.(error);
-    },
-  });
-}
-
-export function useParseNLPMutation(options = {}) {
-  return useMutation({
-    mutationFn: (text) => taskApi.parseNaturalLanguage(text),
-    onSuccess: (response) => {
-      options.onSuccess?.(response.data.data);
-    },
-    onError: (error) => {
-      options.onError?.(error);
-    },
-  });
-}
