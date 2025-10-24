@@ -66,7 +66,7 @@ const LoginPage = () => {
     setIsLoading(true);
     try {
       await loginMutation.mutateAsync(formData);
-      navigate('/dashboard');
+      navigate('/');
     } catch (error) {
       setErrors({ general: error.response?.data?.message || 'Login failed. Please try again.' });
     } finally {
@@ -425,8 +425,28 @@ const LoginPage = () => {
                   </motion.div>
                 </Stack>
 
+                {/* Forgot Password Link */}
+                <Box sx={{ textAlign: 'center', mt: 1 }}>
+                  <Typography variant="body2" sx={{ color: '#64748b' }}>
+                    <Link
+                      component={RouterLink}
+                      to="/forgot-password"
+                      sx={{
+                        color: '#6366f1',
+                        fontWeight: 600,
+                        textDecoration: 'none',
+                        '&:hover': {
+                          textDecoration: 'underline',
+                        },
+                      }}
+                    >
+                      Forgot your password?
+                    </Link>
+                  </Typography>
+                </Box>
+
                 {/* Register Link */}
-                <Box sx={{ textAlign: 'center', mt: 2 }}>
+                <Box sx={{ textAlign: 'center', mt: 1 }}>
                   <Typography variant="body2" sx={{ color: '#64748b' }}>
                     Don't have an account?{' '}
                     <Link

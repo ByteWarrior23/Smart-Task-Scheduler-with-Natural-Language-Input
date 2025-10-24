@@ -71,6 +71,19 @@ export const sendReminderEmail = async (userEmail, task, reminderType = 'deadlin
                     <p style="color: #7f8c8d; font-size: 14px;">Please complete this task as soon as possible.</p>
                 </div>
             `;
+        } else if (reminderType === 'reset') {
+            subject = `🔐 Password Reset Request`;
+            htmlContent = `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #6366f1;">🔐 Password Reset Request</h2>
+                    <p>You requested a password reset for your TaskMaster account.</p>
+                    <p>Click the link below to reset your password:</p>
+                    <a href="${task.resetLink}" style="background: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 20px 0;">Reset Password</a>
+                    <p style="color: #e74c3c;"><strong>This link will expire in 15 minutes.</strong></p>
+                    <p>If you didn't request this password reset, please ignore this email.</p>
+                    <p style="color: #7f8c8d; font-size: 14px;">The TaskMaster Team</p>
+                </div>
+            `;
         }
         
         const mailOptions = {

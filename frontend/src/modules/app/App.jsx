@@ -6,6 +6,7 @@ import { RegisterPage } from '../auth/pages/RegisterPage';
 import { ProfilePage } from '../auth/pages/ProfilePage';
 import { ChangePasswordPage } from '../auth/pages/ChangePasswordPage';
 import { EmailConfigPage } from '../auth/pages/EmailConfigPage';
+import { ForgotPasswordPage } from '../auth/pages/ForgotPasswordPage';
 import { TasksPage } from '../tasks/pages/TasksPage';
 import { TaskDetailPage } from '../tasks/pages/TaskDetailPage';
 import { RecurringTasksPage } from '../tasks/pages/RecurringTasksPage';
@@ -24,6 +25,7 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
           <Route element={<RequireAuth />}>
             <Route index element={<DashboardPage />} />

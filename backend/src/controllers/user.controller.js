@@ -210,14 +210,14 @@ const deleteUser = asyncHandler(async (req, res) => {
 const updateEmailConfig = asyncHandler(async (req, res) => {
     const userId = req.user.id;
     const { emailConfig } = req.body;
-    
+
     if (!emailConfig) {
         throw new ApiError(400, "Email configuration is required");
     }
-    
+
     const user = await User.findById(userId);
     if (!user) throw new ApiError(404, "User not found");
-    
+
     // Update email configuration
     user.emailConfig = {
         service: emailConfig.service || 'gmail',
@@ -227,22 +227,47 @@ const updateEmailConfig = asyncHandler(async (req, res) => {
         port: emailConfig.port || null,
         secure: emailConfig.secure || false
     };
-    
+
     await user.save();
-    
+
     return res.status(200).json(new ApiResponse(200, "Email configuration updated successfully", {
         emailConfig: user.emailConfig
     }));
 });
 
+const forgotPassword = asyncHandler(async (req, res) => {
+    const { email } = req.body;
+    if (!email) throw new ApiError(400, "Email is required");
 
-export {registerUser, 
-    loginUser, 
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) throw new ApiError(404, "User not found");
+
+    // Generate reset token (simple implementation - in production use JWT with expiration)
+    const resetToken = jwt.sign({ userId: user._id }, process.env.JWT_RESET_TOKEN, { expiresIn: '15m' });
+
+    // Send email with reset link
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+
+    // Use user's email config or default
+    const emailConfig = user.emailConfig?.user ? user.emailConfig : {};
+    const result = await sendReminderEmail(email, { title: 'Password Reset', description: 'Reset your password', resetLink }, 'reset', emailConfig);
+
+    if (!result.success) {
+        throw new ApiError(500, "Failed to send reset email");
+    }
+
+    return res.status(200).json(new ApiResponse(200, "Password reset link sent to your email"));
+});
+
+
+export {registerUser,
+    loginUser,
     logoutUser,
     updateDetails,
     refreshSession,
     getMe,
     changePassword,
     deleteUser,
-    updateEmailConfig
+    updateEmailConfig,
+    forgotPassword
 };

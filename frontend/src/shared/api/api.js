@@ -12,6 +12,7 @@ export const authApi = {
   changePassword: (data) => api.patch('/api/v1/auth/change-password', data),
   updateDetails: (data) => api.patch('/api/v1/auth/update', data),
   updateEmailConfig: (emailConfig) => api.patch('/api/v1/auth/email-config', { emailConfig }),
+  forgotPassword: (data) => api.post('/api/v1/auth/forgot-password', data),
   deleteAccount: () => api.delete('/api/v1/auth/delete'),
 };
 

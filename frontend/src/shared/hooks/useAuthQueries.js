@@ -15,7 +15,7 @@ export const useAuthQueries = () => {
         // Store tokens
         localStorage.setItem('accessToken', data.accessToken);
         localStorage.setItem('refreshToken', data.refreshToken);
-        queryClient.setQueryData(['user'], data.user);
+        queryClient.setQueryData(['user'], data.safeUser);
       },
     });
   };

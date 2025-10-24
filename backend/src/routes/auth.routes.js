@@ -9,7 +9,8 @@ import {
   changePassword,
   updateDetails,
   deleteUser,
-  updateEmailConfig
+  updateEmailConfig,
+  forgotPassword
 } from "../controllers/user.controller.js";
 
 const router = Router();
@@ -25,6 +26,7 @@ router.get("/me", verifyJWT, getMe);
 router.patch("/change-password", verifyJWT, changePassword);
 router.patch("/update", verifyJWT, updateDetails);
 router.patch("/email-config", verifyJWT, updateEmailConfig);
+router.post("/forgot-password", forgotPassword);
 router.delete("/delete", verifyJWT, deleteUser);
 
 export default router;
