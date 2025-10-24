@@ -87,8 +87,15 @@ const loginUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Password is required");
   }
 
-  const normalizedUsername = username?.trim();
-  const normalizedEmail = email?.trim().toLowerCase();
+  // Smart detection: if username field contains @ symbol, treat it as email
+  let normalizedUsername = username?.trim();
+  let normalizedEmail = email?.trim().toLowerCase();
+  
+  // If no explicit email field but username looks like an email, use it as email
+  if (!normalizedEmail && normalizedUsername && normalizedUsername.includes('@')) {
+    normalizedEmail = normalizedUsername.toLowerCase();
+    normalizedUsername = null; // Don't search by username if it's an email
+  }
 
   // Build query only with provided fields
   const query = [];
